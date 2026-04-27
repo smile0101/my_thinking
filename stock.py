@@ -287,30 +287,10 @@ else:
 url = f'https://www.thinkpool.com/item/{code}'
 with cool[1]:
     st.markdown(
-        """
-        <style>
-        .center-box {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center; }
-        .link-btn {
-            padding: 4px 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            text-decoration: none;
-            color: inherit;     }
-        .link-btn:hover {
-            border-color: #888;
-            background-color: #f0f0f0;     }
-        </style>
-        """ +
-        f'<div class="center-box">'
-        f'<a href="{url}" target="_blank" class="link-btn">Think</a>'
-        f'<br>'
-        f'<span>{CC}</span>'
-        f'</div>',
-        unsafe_allow_html=True   )
+        f'<a href="{url}" target="_blank" style="padding:4px 10px; border:1px solid #ccc; border-radius:4px; text-decoration:none;">Think</a>'
+        f' &nbsp;&nbsp; '
+        f'<span>{CC}</span>',
+        unsafe_allow_html=True  )
 # with cool[1]:
 #     _, sub_mid, _ = st.columns([1, 2, 1])
 #     with sub_mid:
