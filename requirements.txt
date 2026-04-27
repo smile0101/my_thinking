@@ -13,3 +13,4 @@ pymongo[srv]==4.6.3
 dnspython
 certifi
 koreanize-matplotlib
+setuptools
