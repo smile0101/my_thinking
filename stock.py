@@ -399,27 +399,54 @@ with tab1:
         unsafe_allow_html=True
     )
 
+
     # 상위 5일 / 하위 5일 분리
     top5 = display_df.iloc[:5]
     bot5 = display_df.iloc[5:]
-
     sum_labels = ['등락률', '외국인', '기관', '개인']
-
-    header_cols = st.columns([1, 1, 1, 1, 1, 1.7])
-    header_cols[0].markdown("**구간**")
-    for i, label in enumerate(sum_labels):
-        header_cols[i+1].markdown(f"**{label}**")
-
+    
+    summary_data = []
     for title, grp in [("최근", top5), ("이전", bot5)]:
-        row_cols = st.columns([1, 1, 1, 1, 1, 1.7])
-        row_cols[0].markdown(f"**{title}**")
-        for i, label in enumerate(sum_labels):
-            val   = grp[label].sum()
-            color = "#0000FF" if val > 0 else "#FF0000" if val < 0 else "#000000"
-            row_cols[i+1].markdown(
-                f"<h5 style='color:{color};margin-top:-5px;'>{val:,.0f}</h5>",
-                unsafe_allow_html=True
-            )
+        row = {'구간': title}
+        for label in sum_labels:
+            row[label] = grp[label].sum()
+        summary_data.append(row)
+    
+    summary_df = pd.DataFrame(summary_data).set_index('구간')
+    
+    def color_val(val):
+        color = "#0000FF" if val > 0 else "#FF0000" if val < 0 else "#000000"
+        return f'color: {color}'
+    
+    st.dataframe(
+        summary_df.style
+            .applymap(color_val)
+            .format("{:,.0f}"),
+        use_container_width=True  )
+
+
+    
+    # # 상위 5일 / 하위 5일 분리
+    # top5 = display_df.iloc[:5]
+    # bot5 = display_df.iloc[5:]
+
+    # sum_labels = ['등락률', '외국인', '기관', '개인']
+
+    # header_cols = st.columns([1, 1, 1, 1, 1, 1.7])
+    # header_cols[0].markdown("**구간**")
+    # for i, label in enumerate(sum_labels):
+    #     header_cols[i+1].markdown(f"**{label}**")
+
+    # for title, grp in [("최근", top5), ("이전", bot5)]:
+    #     row_cols = st.columns([1, 1, 1, 1, 1, 1.7])
+    #     row_cols[0].markdown(f"**{title}**")
+    #     for i, label in enumerate(sum_labels):
+    #         val   = grp[label].sum()
+    #         color = "#0000FF" if val > 0 else "#FF0000" if val < 0 else "#000000"
+    #         row_cols[i+1].markdown(
+    #             f"<h5 style='color:{color};margin-top:-5px;'>{val:,.0f}</h5>",
+    #             unsafe_allow_html=True
+    #         )
 
 with tab2:
     plot_stock_st(plot_df, item)
