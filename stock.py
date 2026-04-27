@@ -218,7 +218,7 @@ def update_stock():
 # ─────────────────────────────────────────
 # Selectbox
 # ─────────────────────────────────────────
-cool = st.columns([2, 1.5, 3, 2, 2.5])
+cool = st.columns([2, 1.5, 2.8, 2, 2.5])
 
 try:
     current_index = df['종목명'].tolist().index(st.session_state['selected_name'])
@@ -291,18 +291,13 @@ with cool[1]:
         f' &nbsp;&nbsp; '
         f'<span>{CC}</span>',
         unsafe_allow_html=True  )
-# with cool[1]:
-#     _, sub_mid, _ = st.columns([1, 2, 1])
-#     with sub_mid:
-#         st.link_button(label='Think', url=url)
-#         st.write(f'{CC}')
 
 # ─────────────────────────────────────────
 # 등락률 (그제 / 어제 / 오늘)
 # ─────────────────────────────────────────
 with cool[2]:
     st.markdown(
-        f"##### 그제 {color_format(changes[2])} &nbsp;&nbsp; 어제 {color_format(changes[1])} &nbsp;&nbsp; 오늘 {color_format(changes[0])}",
+        f"####### 그제 {color_format(changes[2])} &nbsp;&nbsp;어제 {color_format(changes[1])} &nbsp;&nbsp;오늘 {color_format(changes[0])}",
         unsafe_allow_html=True )
 
 with cool[3]:
