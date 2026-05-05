@@ -9,7 +9,6 @@ import streamlit as st
 import FinanceDataReader as fdr
 from urllib.parse import quote
 import certifi
-import platform
 import matplotlib.font_manager as fm
 import koreanize_matplotlib
 
@@ -46,18 +45,15 @@ def color_format(val):
 
 def set_korean_font():
     plt.rcParams['axes.unicode_minus'] = False
-
     font_path = '/tmp/NanumGothic.ttf'
     font_url  = 'https://github.com/googlefonts/nanum-gothic/raw/main/fonts/ttf/NanumGothic.ttf'
-
-    # 폰트 파일이 없으면 GitHub에서 직접 다운로드
     if not os.path.exists(font_path):
         try:
+            import urllib.request
             urllib.request.urlretrieve(font_url, font_path)
         except Exception as e:
             print(f"폰트 다운로드 실패: {e}")
             return
-
     fm.fontManager.addfont(font_path)
     plt.rc('font', family='NanumGothic')
 
@@ -78,7 +74,8 @@ def save_excel(df):
     st.cache_data.clear()
 
 def save_data(category, stock_name, value):
-    df = load_excel()
+    st.cache_data.clear()          # 읽기 전에 캐시 먼저 클리어
+    df = load_excel()              # 최신 엑셀 읽기
     if category == "ref_prices":
         try:
             value = int(float(value)) if str(value).replace('.', '', 1).isdigit() else 0
@@ -87,15 +84,14 @@ def save_data(category, stock_name, value):
         df.loc[df['종목명'] == stock_name, '기준값'] = value
     elif category == "memos":
         df.loc[df['종목명'] == stock_name, 'Memo'] = value
-    save_excel(df)
+    save_excel(df)                 # 저장 (내부에서 cache_data.clear() 재실행)
     st.toast(f"'{stock_name}' 저장 완료!", icon="💾")
 
 # ─────────────────────────────────────────
-# 통합 수급 함수 (fetch_naver + MM 통합)
+# 통합 수급 함수
 # ─────────────────────────────────────────
 @st.cache_data(ttl=6000)
 def fetch_supply_data(stock_name, stock_code, excel_df_json):
-    import certifi
     excel_df = pd.read_json(StringIO(excel_df_json), dtype={'종목코드': str})
 
     # ── 네이버 수급 데이터 ──────────────────
@@ -134,18 +130,15 @@ def fetch_supply_data(stock_name, stock_code, excel_df_json):
     info1 = f"{m_rank}위/ {amm}천억"
     info3 = f"외인:{FO}/기관:{GV}/개인:{IN}(보유:{FC})"
 
-# ─────────────────────────────────────────
-# MongoDB Atlas 연결 (직접 URL 입력) ──
-# ─────────────────────────────────────────
-    MONGO_URL  = st.secrets["mongo_uri"]
+    # ── MongoDB Atlas 연결 ──────────────────
+    MONGO_URL = st.secrets["mongo_uri"]
     try:
         with MongoClient(
-        MONGO_URL,
-        serverSelectionTimeoutMS=5000,
-        tls=True,
-        tlsInsecure=True
-    ) as client:
-
+            MONGO_URL,
+            serverSelectionTimeoutMS=5000,
+            tls=True,
+            tlsInsecure=True
+        ) as client:
             col   = client.forin.stocks
             db_df = pd.DataFrame(col.find({"종목명": stock_name}, {"_id": 0}))
     except Exception as e:
@@ -218,7 +211,7 @@ def update_stock():
 # ─────────────────────────────────────────
 # Selectbox
 # ─────────────────────────────────────────
-cool = st.columns([2, 1.5, 2.2 , 2, 2.5])
+cool = st.columns([2, 1.5, 2.2, 2, 2.5])
 
 try:
     current_index = df['종목명'].tolist().index(st.session_state['selected_name'])
@@ -275,7 +268,7 @@ info1, info3, info4, plot_df = fetch_supply_data(item, code, excel_df_json)
 if CC:
     vol_3d = [
         f"{int((ts['Close'].iloc[i] * ts['Volume'].iloc[i]) / 100000000)}억"
-        for i in [-5,-4,-3, -2, -1]
+        for i in [-5, -4, -3, -2, -1]
     ]
     info2 = " / ".join(vol_3d)
 else:
@@ -290,7 +283,8 @@ with cool[1]:
         f'<a href="{url}" target="_blank" style="padding:4px 10px; border:1px solid #ccc; border-radius:4px; text-decoration:none;">Think</a>'
         f' &nbsp;&nbsp; '
         f'<span>{CC}</span>',
-        unsafe_allow_html=True  )
+        unsafe_allow_html=True
+    )
 
 # ─────────────────────────────────────────
 # 등락률 (그제 / 어제 / 오늘)
@@ -298,7 +292,8 @@ with cool[1]:
 with cool[2]:
     st.markdown(
         f"###### 그제 {color_format(changes[2])} &nbsp;&nbsp;어제 {color_format(changes[1])} &nbsp;&nbsp;오늘 {color_format(changes[0])}",
-        unsafe_allow_html=True )
+        unsafe_allow_html=True
+    )
 
 with cool[3]:
     st.markdown(f"<p style='font-size:16px;font-weight:bold;'>{info1}</p>", unsafe_allow_html=True)
@@ -313,7 +308,8 @@ with cool[4]:
         f'<a href="https://m.stock.naver.com/domestic/stock/{code}/research" target="_blank" style="padding:4px 10px; border:1px solid #ccc; border-radius:4px; text-decoration:none;">Nv</a>'
         f' &nbsp;&nbsp; '
         f'<a href="https://www.samsungpop.com/mbw/trading/domesticStock.do?cmd=stockInvestorList" target="_blank" style="padding:4px 10px; border:1px solid #ccc; border-radius:4px; text-decoration:none;">투자자</a>',
-        unsafe_allow_html=True )
+        unsafe_allow_html=True
+    )
 
 # ─────────────────────────────────────────
 # 기준가 + 고저가 메트릭
@@ -323,10 +319,11 @@ cols = st.columns([1.5, 2, 2, 2, 2, 2, 2, 2])
 with cols[0]:
     row       = df[df['종목명'] == item].iloc[0]
     saved_ref = str(row['기준값']) if row['기준값'] != 0 else ""
-    ref_input = st.text_input(
-        "기준가", value=saved_ref, key=f"ref_{item}",
-        on_change=lambda: save_data("ref_prices", item, st.session_state[f"ref_{item}"])
-    )
+    ref_input = st.text_input("기준가", value=saved_ref, key=f"ref_{item}")
+
+    if st.button("💾 저장", key=f"btn_ref_{item}"):
+        save_data("ref_prices", item, ref_input)
+
     if CC and ref_input.replace('.', '', 1).isdigit() and float(ref_input) > 0:
         diff  = ((CC - float(ref_input)) / float(ref_input)) * 100
         color = "blue" if diff >= 0 else "red"
@@ -370,7 +367,6 @@ cols1[2].image(f'https://webchart.thinkpool.com/2021ReNew/stock1day_volume/A{cod
 # ─────────────────────────────────────────
 # 수급 테이블 + 차트
 # ─────────────────────────────────────────
-
 st.divider()
 tab1, tab2 = st.columns([1.1, 2])
 
@@ -399,55 +395,30 @@ with tab1:
         unsafe_allow_html=True
     )
 
-
     # 상위 5일 / 하위 5일 분리
     top5 = display_df.iloc[:5]
     bot5 = display_df.iloc[5:]
     sum_labels = ['등락률', '외국인', '기관', '개인']
-    
+
     summary_data = []
     for title, grp in [("최근", top5), ("이전", bot5)]:
         row = {'구간': title}
         for label in sum_labels:
             row[label] = grp[label].sum()
         summary_data.append(row)
-    
+
     summary_df = pd.DataFrame(summary_data).set_index('구간')
-    
+
     def color_val(val):
         color = "#0000FF" if val > 0 else "#FF0000" if val < 0 else "#000000"
         return f'color: {color}'
-    
+
     st.dataframe(
         summary_df.style
             .map(color_val)
             .format("{:,.0f}"),
         use_container_width=True
     )
-
-
-    
-    # # 상위 5일 / 하위 5일 분리
-    # top5 = display_df.iloc[:5]
-    # bot5 = display_df.iloc[5:]
-
-    # sum_labels = ['등락률', '외국인', '기관', '개인']
-
-    # header_cols = st.columns([1, 1, 1, 1, 1, 1.7])
-    # header_cols[0].markdown("**구간**")
-    # for i, label in enumerate(sum_labels):
-    #     header_cols[i+1].markdown(f"**{label}**")
-
-    # for title, grp in [("최근", top5), ("이전", bot5)]:
-    #     row_cols = st.columns([1, 1, 1, 1, 1, 1.7])
-    #     row_cols[0].markdown(f"**{title}**")
-    #     for i, label in enumerate(sum_labels):
-    #         val   = grp[label].sum()
-    #         color = "#0000FF" if val > 0 else "#FF0000" if val < 0 else "#000000"
-    #         row_cols[i+1].markdown(
-    #             f"<h5 style='color:{color};margin-top:-5px;'>{val:,.0f}</h5>",
-    #             unsafe_allow_html=True
-    #         )
 
 with tab2:
     plot_stock_st(plot_df, item)
@@ -457,7 +428,9 @@ with tab2:
 # ─────────────────────────────────────────
 st.subheader("📝 Memo")
 saved_memo = df[df['종목명'] == item].iloc[0]['Memo']
-st.text_area(
-    "종목 메모", value=saved_memo, key=f"memo_{item}", height=100,
-    on_change=lambda: save_data("memos", item, st.session_state[f"memo_{item}"])
+memo_val = st.text_area(
+    "종목 메모", value=saved_memo, key=f"memo_{item}", height=100
 )
+
+if st.button("💾 메모 저장", key=f"btn_memo_{item}"):
+    save_data("memos", item, memo_val)
