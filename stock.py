@@ -67,6 +67,9 @@ def load_excel():
     df = pd.read_excel(EXCEL_FILE, dtype={'종목코드': str})
     df['기준값'] = df['기준값'].fillna(0).astype(int)
     df['Memo']  = df['Memo'].fillna('')
+    if '관심' not in df.columns:
+        df['관심'] = 0
+    df['관심'] = df['관심'].fillna(0).astype(int)
     return df
 
 def save_excel(df):
@@ -84,6 +87,10 @@ def save_data(category, stock_name, value):
         df.loc[df['종목명'] == stock_name, '기준값'] = value
     elif category == "memos":
         df.loc[df['종목명'] == stock_name, 'Memo'] = value
+    elif category == "interest":
+        if '관심' not in df.columns:
+            df['관심'] = 0
+        df.loc[df['종목명'] == stock_name, '관심'] = int(value)
     save_excel(df)                 # 저장 (내부에서 cache_data.clear() 재실행)
     st.toast(f"'{stock_name}' 저장 완료!", icon="💾")
 
@@ -275,7 +282,7 @@ else:
     info2 = "-"
 
 # ─────────────────────────────────────────
-# ThinkPool 링크
+# ThinkPool 링크 + 관심 체크박스
 # ─────────────────────────────────────────
 url = f'https://www.thinkpool.com/item/{code}'
 with cool[1]:
@@ -285,6 +292,14 @@ with cool[1]:
         f'<span>{CC}</span>',
         unsafe_allow_html=True
     )
+
+    # 관심 체크박스
+    current_interest = int(df[df['종목명'] == item].iloc[0].get('관심', 0))
+    interest_checked = st.checkbox("⭐ 관심", value=bool(current_interest), key=f"interest_{item}")
+
+    if interest_checked != bool(current_interest):
+        save_data("interest", item, 1 if interest_checked else 0)
+        st.rerun()
 
 # ─────────────────────────────────────────
 # 등락률 (그제 / 어제 / 오늘)
