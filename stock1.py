@@ -335,23 +335,29 @@ code = st.session_state['selected_code']
 # 선택 종목 row_data 전역 확정 (item/code 결정 후 한 번만 조회)
 row_data = df[df['종목명'] == item].iloc[0]
 
+# ─────────────────────────────────────────
+# row_data에서 값 안전하게 읽기 (pandas Series용)
+# ─────────────────────────────────────────
+def _get(col_name, suffix='', fmt="{:.2f}"):
+    """row_data(pandas Series)에서 컬럼 값을 안전하게 포맷팅"""
+    if col_name not in row_data.index:
+        return '-'
+    v = row_data[col_name]
+    if v is None or (isinstance(v, float) and pd.isna(v)):
+        return ''   # NaN이면 빈칸
+    try:
+        return fmt.format(float(v)) + suffix
+    except Exception:
+        return str(v)
+
 # ── cool[1]: 유통 / PER / ROE ──────────────
 with cool[1]:
-    def _fv(col_name, suffix='', fmt="{:.1f}"):
-        v = row_data.get(col_name, None)
-        if v is None or (isinstance(v, float) and pd.isna(v)):
-            return '-'
-        try:
-            return fmt.format(float(v)) + suffix
-        except Exception:
-            return '-'
-
     st.markdown(
         f"""
-        <div style="font-size:13px;line-height:2.1;padding-top:4px;">
-            <b>유통</b>&nbsp;{_fv('유통', '%')}<br>
-            <b>PER</b>&nbsp;&nbsp;{_fv('PER')}<br>
-            <b>ROE</b>&nbsp;&nbsp;{_fv('ROE', '%')}
+        <div style="font-size:13px;line-height:2.3;padding-top:4px;">
+            <b>유통</b>&nbsp;{_get('유통', '%', '{:.2f}')}<br>
+            <b>PER</b>&nbsp;&nbsp;{_get('PER', '', '{:.2f}')}<br>
+            <b>ROE</b>&nbsp;&nbsp;{_get('ROE', '%', '{:.2f}')}
         </div>
         """,
         unsafe_allow_html=True
@@ -439,27 +445,31 @@ with cool[3]:
 
 # ── cool[4]: 재무 데이터프레임 ─────────────────
 with cool[4]:
-    def _rv(col_name, fmt="{:.0f}"):
-        v = row_data.get(col_name, None)
-        if v is None or (isinstance(v, float) and pd.isna(v)):
-            return '-'
-        try:
-            return fmt.format(float(v))
-        except Exception:
-            return '-'
-
     fin_df = pd.DataFrame({
-        '구분': ['매출','영익','익율'],
-        '24':   [_rv('매출_24'), _rv('영익_24'), _rv('영익률_24', "{:.2f}")],
-        '25':   [_rv('매출_25'), _rv('영익_25'), _rv('영익률_25', "{:.2f}")],
-        '26':   [_rv('매출_26'), _rv('영익_26'), _rv('영익률_26', "{:.2f}")],
+        '구분': ['매출', '영익', '익율'],
+        '24년': [
+            _get('매출_24', fmt='{:.0f}'),
+            _get('영익_24', fmt='{:.0f}'),
+            _get('영익률_24', fmt='{:.2f}'),
+        ],
+        '25년': [
+            _get('매출_25', fmt='{:.0f}'),
+            _get('영익_25', fmt='{:.0f}'),
+            _get('영익률_25', fmt='{:.2f}'),
+        ],
+        '26년': [
+            _get('매출_26', fmt='{:.0f}'),
+            _get('영익_26', fmt='{:.0f}'),
+            _get('영익률_26', fmt='{:.2f}'),
+        ],
     }).set_index('구분')
 
     st.dataframe(
         fin_df.style
-            .set_properties(**{'text-align':'center','font-size':'12px'})
+            .set_properties(**{'text-align': 'right', 'font-size': '12px'})
             .set_table_styles([
-                {'selector':'th','props':[('text-align','center'),('font-size','12px')]},
+                {'selector': 'th', 'props': [('text-align', 'center'), ('font-size', '12px')]},
+                {'selector': 'td', 'props': [('text-align', 'right')]},
             ]),
         use_container_width=True,
         height=140,
@@ -503,20 +513,21 @@ with cols[6]:
     custom_metric("분기최저", low_3m, difl_3m, f"+{(difl_3m/low_3m)*100:.1f}%")
 
 with cols[7]:
-    # 지분율: '/' 기준 최대 3줄, 없으면 공백
-    jibun_raw  = row_data.get('지분율', '')
-    jibun_text = format_jibun(jibun_raw)
-    if jibun_text:
-        lines      = jibun_text.split('\n')
+    # 지분율: '/' 기준으로 분리, 빈 항목 제거, 최대 3줄
+    jibun_raw = row_data['지분율'] if '지분율' in row_data.index else ''
+    if pd.isna(jibun_raw) if isinstance(jibun_raw, float) else False:
+        jibun_raw = ''
+
+    parts = [p.strip() for p in str(jibun_raw).split('/') if p.strip()]
+    if parts:
         html_lines = '<br>'.join(
-            f'<span style="font-size:11px;color:#333;">{ln}</span>'
-            for ln in lines
+            f'<span style="font-size:11px;color:#333;">{p}</span>'
+            for p in parts[:3]
         )
         st.markdown(
-            f'<div style="line-height:1.9;padding-top:6px;">{html_lines}</div>',
+            f'<div style="line-height:2.0;padding-top:6px;">{html_lines}</div>',
             unsafe_allow_html=True
         )
-    # 없으면 아무것도 표시 안 함
 
 # ─────────────────────────────────────────
 # 차트 이미지
