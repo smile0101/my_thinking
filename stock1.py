@@ -56,13 +56,20 @@ def set_korean_font():
     fm.fontManager.addfont(font_path)
     plt.rc('font', family='NanumGothic')
 
+def format_jibun(jibun_str):
+    """'/' 기준으로 분리해 최대 3줄 반환"""
+    if not jibun_str or str(jibun_str).strip() == '':
+        return ''
+    parts = [p.strip() for p in str(jibun_str).split('/') if p.strip()]
+    return '\n'.join(parts[:3])
+
 # ─────────────────────────────────────────
 # MongoDB 연결
 # ─────────────────────────────────────────
 def get_mongo_col():
     MONGO_URL = st.secrets["mongo_uri"]
     client = MongoClient(MONGO_URL, serverSelectionTimeoutMS=5000, tls=True, tlsInsecure=True)
-    return client, client.forin.stock_in
+    return client, client.forin.stock_info
 
 # ─────────────────────────────────────────
 # MongoDB 읽기
@@ -75,12 +82,25 @@ def load_mongo():
     if df.empty:
         st.error("MongoDB에 데이터가 없습니다.")
         st.stop()
+
     df['종목코드'] = df['종목코드'].astype(str).str.zfill(6)
     df['기준값']   = df['기준값'].fillna(0).astype(int)
     df['Memo']    = df['Memo'].fillna('')
     if '관심' not in df.columns:
         df['관심'] = 0
     df['관심'] = df['관심'].fillna(0).astype(int)
+
+    # 재무 컬럼 숫자 변환
+    for c in ['매출_24','매출_25','매출_26',
+              '영익_24','영익_25','영익_26',
+              '영익률_24','영익률_25','영익률_26',
+              'PER','ROE','유통']:
+        if c in df.columns:
+            df[c] = pd.to_numeric(df[c], errors='coerce')
+
+    if '지분율' in df.columns:
+        df['지분율'] = df['지분율'].fillna('')
+
     return df
 
 # ─────────────────────────────────────────
@@ -91,7 +111,7 @@ def save_data(category, stock_name, value):
     with client:
         if category == "ref_prices":
             try:
-                value = int(float(value)) if str(value).replace('.', '', 1).isdigit() else 0
+                value = int(float(value)) if str(value).replace('.','',1).isdigit() else 0
             except (ValueError, TypeError):
                 value = 0
             col.update_one({"종목명": stock_name}, {"$set": {"기준값": value}})
@@ -103,18 +123,35 @@ def save_data(category, stock_name, value):
     st.toast(f"'{stock_name}' 저장!", icon="💾")
 
 # ─────────────────────────────────────────
-# 관심 슬라이더 콜백
+# 콜백 함수들
 # ─────────────────────────────────────────
-def on_interest_change():
-    new_val = st.session_state[f"interest_{st.session_state['selected_name']}"]
-    save_data("interest", st.session_state['selected_name'], new_val)
+def on_filter_change():
+    st.session_state['interest_filter'] = st.session_state['_interest_filter_sel']
 
-# ─────────────────────────────────────────
-# 기준가 콜백 (저장 버튼 없이 자동 저장)
-# ─────────────────────────────────────────
+def update_stock():
+    new_name = st.session_state['stock_selector']
+    row = df[df['종목명'] == new_name].iloc[0]
+    st.session_state['selected_code'] = row['종목코드']
+    st.session_state['selected_name'] = new_name
+
 def on_ref_change():
-    new_val = st.session_state[f"ref_{st.session_state['selected_name']}"]
-    save_data("ref_prices", st.session_state['selected_name'], new_val)
+    name    = st.session_state['selected_name']
+    new_val = st.session_state.get(f"ref_{name}", "")
+    save_data("ref_prices", name, new_val)
+
+def on_interest_chk():
+    """체크박스 클릭 시: 관심 0이면 1로, 1~7이면 +1, 7이면 0으로 순환"""
+    name    = st.session_state['selected_name']
+    old_val = st.session_state.get(f"_interest_val_{name}", 0)
+    chk_now = st.session_state[f"chk_interest_{name}"]
+    if chk_now:
+        # 체크됨 → 기존값 기준 +1 순환 (최대 7)
+        new_val = min(old_val + 1, 7) if old_val < 7 else 1
+    else:
+        # 체크 해제 → 0
+        new_val = 0
+    save_data("interest", name, new_val)
+    st.session_state[f"_interest_val_{name}"] = new_val
 
 # ─────────────────────────────────────────
 # 통합 수급 함수
@@ -123,7 +160,6 @@ def on_ref_change():
 def fetch_supply_data(stock_name, stock_code, df_json):
     excel_df = pd.read_json(StringIO(df_json), dtype={'종목코드': str})
 
-    # ── 네이버 수급 데이터 ──────────────────
     headers = {"User-Agent": "Mozilla/5.0"}
     res = requests.get(
         f'https://finance.naver.com/item/frgn.naver?code={stock_code}',
@@ -142,11 +178,10 @@ def fetch_supply_data(stock_name, stock_code, df_json):
     fk['개인'] = -(fk['외국인'] + fk['기관'])
 
     if fk['보유율'].dtype == 'O':
-        fk['보유율'] = fk['보유율'].str.replace('%', '').astype(float)
+        fk['보유율'] = fk['보유율'].str.replace('%','').astype(float)
 
     dk = fk.head(10).reset_index(drop=True)
 
-    # ── 수급 요약 정보 ──────────────────────
     target = excel_df[excel_df['종목코드'] == stock_code].iloc[0]
     m_rank = target['순위']
     amm    = target['시총']
@@ -156,10 +191,9 @@ def fetch_supply_data(stock_name, stock_code, df_json):
     IN = int((dk['개인']   > 0).sum())
     FC = dk['보유율'].iloc[0]
 
-    info1 = f"{m_rank}위/ {amm}천억"
-    info3 = f"외인:{FO}/기관:{GV}/개인:{IN}(보유:{FC})"
+    info1 = f"{m_rank}위 / {amm}천억"
+    info3 = f"외인:{FO} / 기관:{GV} / 개인:{IN} (보유:{FC})"
 
-    # ── MongoDB 과거 데이터 ─────────────────
     MONGO_URL = st.secrets["mongo_uri"]
     try:
         with MongoClient(MONGO_URL, serverSelectionTimeoutMS=5000, tls=True, tlsInsecure=True) as client:
@@ -169,15 +203,13 @@ def fetch_supply_data(stock_name, stock_code, df_json):
         st.warning(f"MongoDB 연결 오류: {e}")
         db_df = pd.DataFrame()
 
-    # ── plot용 df 구성 ──────────────────────
     plot_df = dk[['날짜','종가','보유율']].copy()
-    plot_df['보유율'] = plot_df['보유율'].astype(str).str.replace('%', '').astype(float)
+    plot_df['보유율'] = plot_df['보유율'].astype(str).str.replace('%','').astype(float)
     plot_df['날짜']   = pd.to_datetime(plot_df['날짜'])
     plot_df['일자']   = plot_df['날짜'].dt.strftime('%m.%d')
     plot_df['종목명'] = stock_name
     plot_df['코드']   = stock_code
 
-    # ── DB 데이터 병합 ──────────────────────
     if not db_df.empty:
         if '날짜' in db_df.columns:
             db_df['날짜'] = pd.to_datetime(db_df['날짜'])
@@ -225,41 +257,104 @@ df = load_mongo()
 
 if 'selected_name' not in st.session_state:
     st.session_state['selected_name'] = df['종목명'].iloc[0]
+if 'interest_filter' not in st.session_state:
+    st.session_state['interest_filter'] = 0
 
-def update_stock():
-    new_name     = st.session_state['stock_selector']
-    selected_row = df[df['종목명'] == new_name].iloc[0]
-    st.session_state['selected_code'] = selected_row['종목코드']
-    st.session_state['selected_name'] = new_name
+# ═════════════════════════════════════════
+# 1단 배열: cool = [2, 1, 2.2, 2, 3]
+# ═════════════════════════════════════════
+cool = st.columns([2, 1, 2.2, 2, 3])
 
-# ─────────────────────────────────────────
-# Selectbox
-# ─────────────────────────────────────────
-cool = st.columns([2, 1.5, 2.2, 2, 2.5])
+# ── cool[0]: 관심 필터 / 종목 선택 / 관심 체크박스 ──
+with cool[0]:
 
-try:
-    current_index = df['종목명'].tolist().index(st.session_state['selected_name'])
-except ValueError:
-    current_index = 0
+    # ① 관심 필터 셀렉박스 (0=전체, 1~7)
+    filt = st.session_state['interest_filter']
+    st.selectbox(
+        "관심 필터",
+        options=list(range(8)),
+        format_func=lambda x: "전체 목록" if x == 0 else f"관심 {x}",
+        index=filt,
+        key='_interest_filter_sel',
+        on_change=on_filter_change,
+        label_visibility='collapsed'
+    )
 
-item = cool[0].selectbox(
-    "Choice",
-    df['종목명'].tolist(),
-    index=current_index,
-    key='stock_selector',
-    on_change=update_stock
-)
+    # 필터에 따른 종목 목록 결정
+    filt = st.session_state['interest_filter']
+    if filt == 0:
+        name_list = df['종목명'].tolist()
+    else:
+        name_list = df[df['관심'] == filt]['종목명'].tolist()
+        if not name_list:
+            st.caption(f"관심 {filt}인 종목이 없습니다.")
+            name_list = df['종목명'].tolist()
 
-if 'selected_code' not in st.session_state:
-    st.session_state['selected_code'] = (
-        df[df['종목명'] == st.session_state['selected_name']].iloc[0]['종목코드']
+    # selected_name이 목록 밖이면 첫 번째로 초기화
+    if st.session_state['selected_name'] not in name_list:
+        st.session_state['selected_name'] = name_list[0]
+        st.session_state['selected_code'] = (
+            df[df['종목명'] == name_list[0]].iloc[0]['종목코드']
+        )
+
+    try:
+        current_index = name_list.index(st.session_state['selected_name'])
+    except ValueError:
+        current_index = 0
+
+    # ② 종목 선택 셀렉박스
+    item = st.selectbox(
+        "종목 선택",
+        name_list,
+        index=current_index,
+        key='stock_selector',
+        on_change=update_stock,
+        label_visibility='collapsed'
+    )
+
+    if 'selected_code' not in st.session_state:
+        st.session_state['selected_code'] = (
+            df[df['종목명'] == item].iloc[0]['종목코드']
+        )
+
+    # ③ 관심 체크박스 (작게) — 클릭마다 +1 순환, 해제하면 0
+    row_data     = df[df['종목명'] == item].iloc[0]
+    cur_interest = int(row_data.get('관심', 0))
+    st.session_state[f"_interest_val_{item}"] = cur_interest
+
+    checked = cur_interest > 0
+    st.checkbox(
+        f"⭐ {cur_interest}" if cur_interest > 0 else "☆ 관심",
+        value=checked,
+        key=f"chk_interest_{item}",
+        on_change=on_interest_chk
     )
 
 code = st.session_state['selected_code']
 
-# ─────────────────────────────────────────
-# 주가 데이터
-# ─────────────────────────────────────────
+# ── cool[1]: 유통 / PER / ROE ──────────────
+with cool[1]:
+    def _fv(col_name, suffix='', fmt="{:.1f}"):
+        v = row_data.get(col_name, None)
+        if v is None or (isinstance(v, float) and pd.isna(v)):
+            return '-'
+        try:
+            return fmt.format(float(v)) + suffix
+        except Exception:
+            return '-'
+
+    st.markdown(
+        f"""
+        <div style="font-size:13px;line-height:2.1;padding-top:4px;">
+            <b>유통</b>&nbsp;{_fv('유통', '%')}<br>
+            <b>PER</b>&nbsp;&nbsp;{_fv('PER')}<br>
+            <b>ROE</b>&nbsp;&nbsp;{_fv('ROE', '%')}
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+# ── 주가 데이터 (cool[2] 전에 로드) ──────────
 @st.cache_data(ttl=600)
 def get_stock_data(code):
     return fdr.DataReader(code).tail(60)
@@ -271,22 +366,20 @@ low_1w = low_1m = low_3m = None
 changes = [0, 0, 0]
 
 if not ts.empty:
-    CC       = ts['Close'].iloc[-1]
-    high_1w  = ts['Close'].tail(5).max()
-    high_1m  = ts['Close'].tail(20).max()
-    high_3m  = ts['Close'].max()
-    low_1w   = ts['Close'].tail(5).min()
-    low_1m   = ts['Close'].tail(20).min()
-    low_3m   = ts['Close'].min()
-    changes  = [
+    CC      = ts['Close'].iloc[-1]
+    high_1w = ts['Close'].tail(5).max()
+    high_1m = ts['Close'].tail(20).max()
+    high_3m = ts['Close'].max()
+    low_1w  = ts['Close'].tail(5).min()
+    low_1m  = ts['Close'].tail(20).min()
+    low_3m  = ts['Close'].min()
+    changes = [
         ts['Change'].iloc[-1] * 100,
         ts['Change'].iloc[-2] * 100,
-        ts['Change'].iloc[-3] * 100
+        ts['Change'].iloc[-3] * 100,
     ]
 
-# ─────────────────────────────────────────
-# 통합 수급 데이터 호출
-# ─────────────────────────────────────────
+# 수급 데이터
 df_json = df.to_json()
 info1, info3, info4, plot_df = fetch_supply_data(item, code, df_json)
 
@@ -299,69 +392,90 @@ if CC:
 else:
     info2 = "-"
 
-# ─────────────────────────────────────────
-# ThinkPool 링크 + 관심 슬라이더
-# ─────────────────────────────────────────
-url = f'https://www.thinkpool.com/item/{code}'
-with cool[1]:
-    st.markdown(
-        f'<a href="{url}" target="_blank" style="padding:4px 10px; border:1px solid #ccc; border-radius:4px; text-decoration:none;">Think</a>'
-        f' &nbsp;&nbsp; '
-        f'<span>{CC}</span>',
-        unsafe_allow_html=True
-    )
-
-    current_interest = int(df[df['종목명'] == item].iloc[0].get('관심', 0))
-    st.select_slider(
-        "⭐ 관심",
-        options=[0, 1, 2, 3, 4, 5],
-        value=current_interest,
-        key=f"interest_{item}",
-        on_change=on_interest_change
-    )
-
-# ─────────────────────────────────────────
-# 등락률 (그제 / 어제 / 오늘)
-# ─────────────────────────────────────────
+# ── cool[2]: 현재가 + 등락률 + 시총순위 + 거래량 ──
 with cool[2]:
+    cc_str = f"{CC:,.0f}" if CC else "-"
     st.markdown(
-        f"###### 그제 {color_format(changes[2])} &nbsp;&nbsp;어제 {color_format(changes[1])} &nbsp;&nbsp;오늘 {color_format(changes[0])}",
+        f"""
+        <div style="font-size:13px;line-height:2.0;padding-top:2px;">
+            <span style="font-size:17px;font-weight:bold;">{cc_str}</span>
+            &nbsp;&nbsp;
+            그제 {color_format(changes[2])}
+            &nbsp; 어제 {color_format(changes[1])}
+            &nbsp; 오늘 {color_format(changes[0])}
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+    st.markdown(
+        f"<p style='font-size:15px;font-weight:bold;margin:2px 0;'>{info1}</p>",
+        unsafe_allow_html=True
+    )
+    st.markdown(
+        f"<p style='font-size:12px;margin:2px 0;color:#555;'>{info2}</p>",
         unsafe_allow_html=True
     )
 
+# ── cool[3]: 링크 버튼 ─────────────────────────
 with cool[3]:
-    st.markdown(f"<p style='font-size:16px;font-weight:bold;'>{info1}</p>", unsafe_allow_html=True)
-    st.markdown(f"<p style='font-size:13px;font-weight:bold;'>{info2}</p>", unsafe_allow_html=True)
+    btn = "padding:3px 9px;border:1px solid #bbb;border-radius:4px;text-decoration:none;font-size:12px;margin:2px 2px 2px 0;"
+    url_think = f'https://www.thinkpool.com/item/{code}'
+    url_tr    = f'https://kr.tradingview.com/chart/Y3Tq45pg/?symbol=KRX%3A{code}'
+    url_fn    = f'https://comp.fnguide.com/SVO2/ASP/SVD_Main.asp?gicode=A{code}'
+    url_nv    = f'https://m.stock.naver.com/domestic/stock/{code}/research'
+    url_ggl   = f"https://news.google.com/search?q={quote(item)}&hl=ko&gl=KR&ceid=KR:ko"
 
-with cool[4]:
     st.markdown(
-        f'<a href="https://kr.tradingview.com/chart/Y3Tq45pg/?symbol=KRX%3A{code}" target="_blank" style="padding:4px 10px; border:1px solid #ccc; border-radius:4px; text-decoration:none;">Tr</a>'
-        f' &nbsp;&nbsp; '
-        f'<a href="https://comp.fnguide.com/SVO2/ASP/SVD_Main.asp?gicode=A{code}" target="_blank" style="padding:4px 10px; border:1px solid #ccc; border-radius:4px; text-decoration:none;">Fn</a>'
-        f' &nbsp;&nbsp; '
-        f'<a href="https://m.stock.naver.com/domestic/stock/{code}/research" target="_blank" style="padding:4px 10px; border:1px solid #ccc; border-radius:4px; text-decoration:none;">Nv</a>'
-        f' &nbsp;&nbsp; '
-        f'<a href="https://www.samsungpop.com/mbw/trading/domesticStock.do?cmd=stockInvestorList" target="_blank" style="padding:4px 10px; border:1px solid #ccc; border-radius:4px; text-decoration:none;">투자자</a>',
+        f'<a href="{url_think}" target="_blank" style="{btn}">Think</a><br>'
+        f'<a href="{url_tr}"    target="_blank" style="{btn}">Tr</a>'
+        f'<a href="{url_fn}"    target="_blank" style="{btn}">Fn</a>'
+        f'<a href="{url_nv}"    target="_blank" style="{btn}">Nv</a><br>'
+        f'<a href="{url_ggl}"   target="_blank" style="{btn}">Google</a>',
         unsafe_allow_html=True
     )
 
-# ─────────────────────────────────────────
-# 기준가 + 고저가 메트릭
-# ─────────────────────────────────────────
+# ── cool[4]: 재무 데이터프레임 ─────────────────
+with cool[4]:
+    def _rv(col_name, fmt="{:.0f}"):
+        v = row_data.get(col_name, None)
+        if v is None or (isinstance(v, float) and pd.isna(v)):
+            return '-'
+        try:
+            return fmt.format(float(v))
+        except Exception:
+            return '-'
+
+    fin_df = pd.DataFrame({
+        '구분': ['매출','영익','익율'],
+        '24':   [_rv('매출_24'), _rv('영익_24'), _rv('영익률_24', "{:.2f}")],
+        '25':   [_rv('매출_25'), _rv('영익_25'), _rv('영익률_25', "{:.2f}")],
+        '26':   [_rv('매출_26'), _rv('영익_26'), _rv('영익률_26', "{:.2f}")],
+    }).set_index('구분')
+
+    st.dataframe(
+        fin_df.style
+            .set_properties(**{'text-align':'center','font-size':'12px'})
+            .set_table_styles([
+                {'selector':'th','props':[('text-align','center'),('font-size','12px')]},
+            ]),
+        use_container_width=True,
+        height=140,
+    )
+
+# ═════════════════════════════════════════
+# 2단 배열: 기준가 + 고저가 + 지분율
+# ═════════════════════════════════════════
 cols = st.columns([1.5, 2, 2, 2, 2, 2, 2, 2])
 
 with cols[0]:
-    row       = df[df['종목명'] == item].iloc[0]
-    saved_ref = str(row['기준값']) if row['기준값'] != 0 else ""
-
+    saved_ref = str(row_data['기준값']) if row_data['기준값'] != 0 else ""
     ref_input = st.text_input(
         "기준가",
         value=saved_ref,
         key=f"ref_{item}",
-        on_change=on_ref_change          # ← Enter / 포커스 아웃 시 자동 저장
+        on_change=on_ref_change
     )
-
-    if CC and ref_input.replace('.', '', 1).isdigit() and float(ref_input) > 0:
+    if CC and ref_input.replace('.','',1).isdigit() and float(ref_input) > 0:
         diff  = ((CC - float(ref_input)) / float(ref_input)) * 100
         color = "blue" if diff >= 0 else "red"
         st.markdown(f"{CC - float(ref_input):,.0f} (:{color}[{diff:+.2f}%])")
@@ -386,9 +500,20 @@ with cols[6]:
     custom_metric("분기최저", low_3m, difl_3m, f"+{(difl_3m/low_3m)*100:.1f}%")
 
 with cols[7]:
-    co1, _ = st.columns(2)
-    co1.link_button('google', f"https://news.google.com/search?q={quote(item)}&hl=ko&gl=KR&ceid=KR:ko")
-    co1.link_button('naver',  f"https://finance.naver.com/item/news.naver?code={code}")
+    # 지분율: '/' 기준 최대 3줄, 없으면 공백
+    jibun_raw  = row_data.get('지분율', '')
+    jibun_text = format_jibun(jibun_raw)
+    if jibun_text:
+        lines      = jibun_text.split('\n')
+        html_lines = '<br>'.join(
+            f'<span style="font-size:11px;color:#333;">{ln}</span>'
+            for ln in lines
+        )
+        st.markdown(
+            f'<div style="line-height:1.9;padding-top:6px;">{html_lines}</div>',
+            unsafe_allow_html=True
+        )
+    # 없으면 아무것도 표시 안 함
 
 # ─────────────────────────────────────────
 # 차트 이미지
@@ -411,37 +536,37 @@ with tab1:
     display_df = info4[['날짜','종가','등락률','외국인','기관','개인','보유율']].copy()
     display_df['날짜']   = display_df['날짜'].str.slice(5)
     display_df['종가']   = pd.to_numeric(display_df['종가'], errors='coerce').fillna(0).astype(int)
-    display_df['등락률'] = display_df['등락률'].str.replace('%', '').astype(float)
-    for col in ['외국인', '기관', '개인']:
-        display_df[col] = pd.to_numeric(display_df[col], errors='coerce') / 1000
+    display_df['등락률'] = display_df['등락률'].str.replace('%','').astype(float)
+    for c in ['외국인','기관','개인']:
+        display_df[c] = pd.to_numeric(display_df[c], errors='coerce') / 1000
 
     styled = (display_df.style.hide(axis="index")
         .map(lambda v: 'background-color:#FFD1DC'
              if isinstance(v, (int, float)) and v > 0 else '',
              subset=['등락률','외국인','기관','개인'])
         .format(precision=1)
-        .set_properties(**{'text-align': 'center'})
+        .set_properties(**{'text-align':'center'})
         .set_table_styles([
-            {'selector': 'th', 'props': [('text-align', 'center')]},
-            {'selector': 'td', 'props': [('text-align', 'center')]}
+            {'selector':'th','props':[('text-align','center')]},
+            {'selector':'td','props':[('text-align','center')]}
         ]))
     st.markdown(styled.to_html(), unsafe_allow_html=True)
 
     st.markdown(
-        f"""<p style="font-size:18px;font-weight:bold;color:#31333F;padding-top:10px;">{info3}</p>""",
+        f'<p style="font-size:15px;font-weight:bold;color:#31333F;padding-top:10px;">{info3}</p>',
         unsafe_allow_html=True
     )
 
     top5 = display_df.iloc[:5]
     bot5 = display_df.iloc[5:]
-    sum_labels = ['등락률', '외국인', '기관', '개인']
+    sum_labels = ['등락률','외국인','기관','개인']
 
     summary_data = []
     for title, grp in [("최근", top5), ("이전", bot5)]:
-        row = {'구간': title}
+        r = {'구간': title}
         for label in sum_labels:
-            row[label] = grp[label].sum()
-        summary_data.append(row)
+            r[label] = grp[label].sum()
+        summary_data.append(r)
 
     summary_df = pd.DataFrame(summary_data).set_index('구간')
 
@@ -450,9 +575,7 @@ with tab1:
         return f'color: {color}'
 
     st.dataframe(
-        summary_df.style
-            .map(color_val)
-            .format("{:,.0f}"),
+        summary_df.style.map(color_val).format("{:,.0f}"),
         use_container_width=True
     )
 
