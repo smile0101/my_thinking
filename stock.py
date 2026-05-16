@@ -560,6 +560,13 @@ with tab1:
 
     summary_df = pd.DataFrame(summary_data).set_index('구간')
 
+    # Sum 행 추가 (최근 + 이전 합계)
+    sum_row = pd.DataFrame(
+        {col: [summary_df[col].sum()] for col in summary_df.columns},
+        index=['Sum']
+    )
+    summary_df = pd.concat([summary_df, sum_row])
+
     def color_val(val):
         color = "#0000FF" if val > 0 else "#FF0000" if val < 0 else "#000000"
         return f'color: {color}'
@@ -601,6 +608,13 @@ with tab2:
         monthly_data.append(r)
 
     monthly_df = pd.DataFrame(monthly_data).set_index('구간')
+
+    # Sum 행 추가 (1M + 2M 합계)
+    sum_row_m = pd.DataFrame(
+        {col: [monthly_df[col].sum()] for col in monthly_df.columns},
+        index=['Sum']
+    )
+    monthly_df = pd.concat([monthly_df, sum_row_m])
 
     def color_val_m(val):
         color = "#0000FF" if val > 0 else "#FF0000" if val < 0 else "#000000"
