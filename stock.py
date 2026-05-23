@@ -673,9 +673,9 @@ def showV_plotly(stock_name, stock_code):
     d_min = d['Close'].min()
     dgap  = (d_max - d_min) / d_min * 100
     
-   ## 레이아웃
+#### 레이아웃
     fig = make_subplots( rows=4, cols=1, shared_xaxes=True, vertical_spacing=0.01,
-        row_heights=[0.22, 0.32, 0.32, 0.14],
+        row_heights=[0.3, 0.32, 0.28, 0.1],
         specs=[ [{"secondary_y": True}], [{"secondary_y": False}], [{"secondary_y": True}], [{"secondary_y": True}], ] )
 
     # Chart 1: Price + Change bar
@@ -759,7 +759,7 @@ def showV_plotly(stock_name, stock_code):
     fig.add_trace(go.Scatter(x=d['Date'], y=d['S5_detail'],  name='S5 (Angle)',  line=dict(color='magenta', dash='dashdot')), row=4, col=1, secondary_y=True)
     fig.add_trace(go.Scatter(x=d['Date'], y=d['S10_detail'], name='S10 (Angle)', line=dict(color='blue',    dash='dash')),    row=4, col=1, secondary_y=True)
 
-    ###  크기
+###  크기
     fig.update_layout(
         height=950, title_text=f"📊 {stock_name}({stock_code})", showlegend=False,
         template="plotly_white", margin=dict(l=10, r=10, t=25, b=10),
