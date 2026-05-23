@@ -669,23 +669,14 @@ def showV_plotly(stock_name, stock_code):
     d = load_data(stock_code)
     if d is None or d.empty:
         return None
-
     d_max = d['Close'].max()
     d_min = d['Close'].min()
     dgap  = (d_max - d_min) / d_min * 100
-
-    fig = make_subplots(
-        rows=4, cols=1,
-        shared_xaxes=True,
-        vertical_spacing=0.01,
-        row_heights=[0.4, 0.2, 0.2, 0.2],
-        specs=[
-            [{"secondary_y": True}],
-            [{"secondary_y": False}],
-            [{"secondary_y": True}],
-            [{"secondary_y": True}],
-        ]
-    )
+    
+   ## 레이아웃
+    fig = make_subplots( rows=4, cols=1, shared_xaxes=True, vertical_spacing=0.01,
+        row_heights=[0.2, 0.3, 0.3, 0.2],
+        specs=[ [{"secondary_y": True}], [{"secondary_y": False}], [{"secondary_y": True}], [{"secondary_y": True}], ] )
 
     # Chart 1: Price + Change bar
     fig.add_trace(go.Scatter(x=d['Date'], y=d['Close'], name='Close', line=dict(color='blue', width=3)), row=1, col=1)
@@ -768,12 +759,10 @@ def showV_plotly(stock_name, stock_code):
     fig.add_trace(go.Scatter(x=d['Date'], y=d['S5_detail'],  name='S5 (Angle)',  line=dict(color='magenta', dash='dashdot')), row=4, col=1, secondary_y=True)
     fig.add_trace(go.Scatter(x=d['Date'], y=d['S10_detail'], name='S10 (Angle)', line=dict(color='blue',    dash='dash')),    row=4, col=1, secondary_y=True)
 
+    ###  크기
     fig.update_layout(
-        height=900,
-        title_text=f"📊 {stock_name}({stock_code})",
-        showlegend=False,
-        template="plotly_white",
-        margin=dict(l=50, r=50, t=30, b=60),
+        height=900, title_text=f"📊 {stock_name}({stock_code})", showlegend=False,
+        template="plotly_white", margin=dict(l=10, r=10, t=10, b=10),
     )
     fig.update_xaxes(
         tickangle=-45, tickformat="%m.%d",
