@@ -214,7 +214,7 @@ def showV_plotly(item, code):
     ### 레이아웃
     fig.update_layout( height=1200, title_text=f"📊 {item}({code})", showlegend=False, template="plotly_white", margin=dict(l=50, r=20, t=30, b=20), )
 
-    fig.update_xaxes( tickangle=-45, tickformat="%m.%d", # dtick="D7", tickfont=dict(color="black", size=12,family="Arial" ), row=4, col=1 )  # 마지막 subplot 기준
+    fig.update_xaxes( tickangle=-45, tickformat="%m.%d", tickfont=dict(color="black", size=12,family="Arial" ), row=4, col=1 )  # 마지막 subplot 기준
     
     # Y축 범위 조정 (각도 차트)
     fig.update_yaxes(range=[89.68, 90.03], row=4, col=1, secondary_y=True)
