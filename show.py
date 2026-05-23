@@ -102,14 +102,10 @@ def showV_plotly(item, code):
     d_min = d['Close'].min()
     dgap = (d_max - d_min) / d_min * 100
 
-    # 1. 서브플롯 생성 (4행 1열)
-    fig = make_subplots(
-        rows=4, cols=1,
-        shared_xaxes=True,
-        vertical_spacing=0.01,
-        row_heights=[0.4, 0.2, 0.2, 0.2],
-        specs=[[{"secondary_y": True}], [{"secondary_y": False}], [{"secondary_y": True}], [{"secondary_y": True}]]
-    )
+    # 1. 서브플롯 생성 (4행 1열) 레이아웃
+    fig = make_subplots( rows=4, cols=1, shared_xaxes=True, vertical_spacing=0.01,
+        row_heights=[3, 2.5, 2.5, 2],
+        specs=[[{"secondary_y": True}], [{"secondary_y": False}], [{"secondary_y": True}], [{"secondary_y": True}]] )
 
     # --- Chart 1: Price and Change ---
     fig.add_trace(go.Scatter(x=d['Date'], y=d['Close'], name='Close', line=dict(color='blue', width=3)), row=1, col=1)
@@ -212,7 +208,7 @@ def showV_plotly(item, code):
     fig.add_trace(go.Scatter(x=d['Date'], y=d['S10_detail'], name='S10 (Angle)', line=dict(color='blue', dash='dash')), row=4, col=1, secondary_y=True)
 
     ### 레이아웃
-    fig.update_layout( height=1200, title_text=f"📊 {item}({code})", showlegend=False, template="plotly_white", margin=dict(l=50, r=20, t=30, b=20), )
+    fig.update_layout( height=1200, title_text=f"📊 {item}({code})", showlegend=False, template="plotly_white", margin=dict(l=20, r=20, t=30, b=20), )
 
     fig.update_xaxes( tickangle=-45, tickformat="%m.%d", tickfont=dict(color="black", size=12,family="Arial" ), row=4, col=1 )  # 마지막 subplot 기준
     
