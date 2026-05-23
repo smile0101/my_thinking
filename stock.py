@@ -675,7 +675,7 @@ def showV_plotly(stock_name, stock_code):
     
 #### 레이아웃
     fig = make_subplots( rows=4, cols=1, shared_xaxes=True, vertical_spacing=0.01,
-        row_heights=[0.3, 0.32, 0.28, 0.1],
+        row_heights=[0.3, 0.32, 0.25, 0.13],
         specs=[ [{"secondary_y": True}], [{"secondary_y": False}], [{"secondary_y": True}], [{"secondary_y": True}], ] )
 
     # Chart 1: Price + Change bar
