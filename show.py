@@ -60,7 +60,7 @@ def showV_plotly(item, code):
             dd['MA10_d'] = dd['MA10'].diff()
             dd['S5'] = np.degrees(np.arctan(np.gradient(dd['MA5'].values)))
             dd['S10'] = np.degrees(np.arctan(np.gradient(dd['MA10'].values)))
-            return dd.tail(70).copy()
+            return dd.tail(100).copy()
 
         except : print(item)
 
@@ -133,7 +133,7 @@ def showV_plotly(item, code):
             cha = conf['T']
 
             if d_len > offset:  
-                k = 70 - offset          
+                k = 100 - offset          
                 x_pos = d['Date'].iloc[k]
                 x_end = d['Date'].iloc[k+5]
                 target_price = d['Close'].iloc[k] # 마커가 찍힐 해당 날짜의 종가  
@@ -211,25 +211,11 @@ def showV_plotly(item, code):
     fig.add_trace(go.Scatter(x=d['Date'], y=d['S5_detail'], name='S5 (Angle)', line=dict(color='magenta', dash='dashdot')), row=4, col=1, secondary_y=True)
     fig.add_trace(go.Scatter(x=d['Date'], y=d['S10_detail'], name='S10 (Angle)', line=dict(color='blue', dash='dash')), row=4, col=1, secondary_y=True)
 
-    fig.update_layout(
-        height=900,
-        title_text=f"📊 {item}({code})",
-        showlegend=False,
-        template="plotly_white",
-        margin=dict(l=50, r=50, t=30, b=60),
-    )
+    ### 레이아웃
+    fig.update_layout( height=1200, title_text=f"📊 {item}({code})", showlegend=False, template="plotly_white", margin=dict(l=50, r=20, t=30, b=20), )
 
-    fig.update_xaxes(
-        tickangle=-45,
-        tickformat="%m.%d",
-        # dtick="D7",
-        tickfont=dict(
-            color="black",
-            size=12,
-            family="Arial"
-        ),
-        row=4, col=1   # 마지막 subplot 기준
-    )
+    fig.update_xaxes( tickangle=-45, tickformat="%m.%d", # dtick="D7", tickfont=dict(color="black", size=12,family="Arial" ), row=4, col=1 )  # 마지막 subplot 기준
+    
     # Y축 범위 조정 (각도 차트)
     fig.update_yaxes(range=[89.68, 90.03], row=4, col=1, secondary_y=True)
     
