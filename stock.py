@@ -175,7 +175,7 @@ def _fetch_naver_frgn_page(stock_code, page):
 # ─────────────────────────────────────────
 # 통합 수급 함수  ★ page=1, page=2 분리 ★
 # ─────────────────────────────────────────
-@st.cache_data(ttl=6000)
+@st.cache_data(ttl=100)
 def fetch_supply_data(stock_name, stock_code, df_json):
     excel_df = pd.read_json(StringIO(df_json), dtype={'종목코드': str})
 
