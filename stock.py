@@ -345,7 +345,7 @@ with cool[1]:
     )
 
 # ── 주가 데이터 (cool[2] 전에 로드) ─────────────────
-@st.cache_data(ttl=100)
+# @st.cache_data(ttl=100)
 def get_stock_data(code):
     return fdr.DataReader(code).tail(60)
 
