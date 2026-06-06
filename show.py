@@ -19,7 +19,7 @@ with client:
 if df.empty:
     st.error("MongoDB에 데이터가 없습니다.")
     st.stop()
-df['code'] = df['code'].astype(str).str.zfill(6)
+# df['code'] = df['code'].astype(str).str.zfill(6)
 
 if 'selected_item' not in st.session_state:
     st.session_state['selected_item'] = df['item'].iloc[0]
