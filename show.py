@@ -6,12 +6,21 @@ from plotly.subplots import make_subplots
 from datetime import datetime, timedelta
 import FinanceDataReader as fdr
 from scipy.signal import find_peaks
-
+from pymongo import MongoClient
 
 st.set_page_config(page_title="Graph", layout="wide")
 st.subheader("📊Graph")
 
-df = pd.read_json('code.json', encoding='utf-8')
+MONGO_URL = st.secrets["mongo_uri"]
+client = MongoClient(MONGO_URL, serverSelectionTimeoutMS=5000, tls=True, tlsInsecure=True)
+col = client.forin.stocks
+with client:
+    df = pd.DataFrame(col.find({}, {"_id": 0}))
+if df.empty:
+    st.error("MongoDB에 데이터가 없습니다.")
+    st.stop()
+df['code'] = df['code'].astype(str).str.zfill(6)
+
 if 'selected_item' not in st.session_state:
     st.session_state['selected_item'] = df['item'].iloc[0]
 
