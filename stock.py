@@ -173,7 +173,7 @@ def _fetch_naver_frgn_page(stock_code, page):
     return fk.reset_index(drop=True)
 
 # ─────────────────────────────────────────
-# 통합 수급 함수  ★ page=1, page=2 분리 ★
+# ★ 외인 점유율 (FOCC) 
 # ─────────────────────────────────────────
 @st.cache_data(ttl=100)
 def fetch_supply_data(stock_name, stock_code, df_json):
@@ -203,7 +203,7 @@ def fetch_supply_data(stock_name, stock_code, df_json):
     MONGO_URL = st.secrets["mongo_uri"]
     try:
         with MongoClient(MONGO_URL, serverSelectionTimeoutMS=5000, tls=True, tlsInsecure=True) as client:
-            col   = client.forin.stocks
+            col   = client.forin.FOCC
             db_df = pd.DataFrame(col.find({"종목명": stock_name}, {"_id": 0}))
     except Exception as e:
         st.warning(f"MongoDB 연결 오류: {e}")
