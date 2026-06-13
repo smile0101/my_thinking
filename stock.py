@@ -370,9 +370,9 @@ else:
     info2 = "-"
 
 try:
-    eps_val = float(EPS)
-    if CC is not None and eps_val != 0:
-        PER = round(CC / eps_val, 1)
+    EPS = row_data['EPS']
+    if CC is not None and EPS != 0:
+        PER = round(CC / EPS, 1)
     else:
         PER = '-'
 except (ValueError, TypeError):
