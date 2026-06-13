@@ -97,7 +97,7 @@ def load_mongo():
     for c in ['매출_24','매출_25','매출_26',
               '영익_24','영익_25','영익_26',
               '영익률_24','영익률_25','영익률_26',
-              'PER','ROE','유통']:
+              'EPS','ROE','유통']:
         if c in df.columns:
             df[c] = pd.to_numeric(df[c], errors='coerce')
 
@@ -331,20 +331,7 @@ def _get(col_name, suffix='', fmt="{:.2f}"):
     except Exception:
         return str(v)
 
-# ── cool[1]: 유통 / PER / ROE ──────────────────────
-with cool[1]:
-    st.markdown(
-        f"""
-        <div style="font-size:16px;line-height:2.3;padding-top:4px;">
-            <b>유통</b>&nbsp;{_get('유통', '%', '{:.2f}')}<br>
-            <b>PER</b>&nbsp;&nbsp;{_get('PER', '', '{:.2f}')}<br>
-            <b>ROE</b>&nbsp;&nbsp;{_get('ROE', '%', '{:.2f}')}
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-# ── 주가 데이터 (cool[2] 전에 로드) ─────────────────
+# ── (cool[2] 전 주가 데이터 ─────────────────
 # @st.cache_data(ttl=100)
 def get_stock_data(code):
     return fdr.DataReader(code).tail(60)
@@ -382,6 +369,22 @@ if CC:
 else:
     info2 = "-"
 
+EPS = _get('EPS', '', '{:.0f}')
+PER = round(CC/EPS, 1)
+# ── cool[1]: 유통 / PER / ROE ──────────────────────
+with cool[1]:
+    st.markdown(
+        f"""
+        <div style="font-size:16px;line-height:2.3;padding-top:4px;">
+            <b>유통</b>&nbsp;{_get('유통', '%', '{:.2f}')}<br>
+            <b>PER</b>&nbsp;&nbsp;{PER}<br>
+            <b>ROE</b>&nbsp;&nbsp;{_get('ROE', '%', '{:.2f}')}
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+
 # ── cool[2]: 현재가 + 등락률 + 시총순위 + 거래량 ──────
 with cool[2]:
     cc_str = f"{CC:,.0f}" if CC else "-"
@@ -410,13 +413,15 @@ with cool[2]:
 with cool[3]:
     btn = "padding:3px 9px;border:1px solid #bbb;border-radius:4px;text-decoration:none;font-size:15px;margin:2px 2px 2px 0;"
     url_think = f'https://www.thinkpool.com/item/{code}'
+    url_min   = f'https://m.stock.naver.com/fchart/domestic/stock/{code}'
     url_tr    = f'https://kr.tradingview.com/chart/Y3Tq45pg/?symbol=KRX%3A{code}'
     url_fn    = f'https://comp.fnguide.com/SVO2/ASP/SVD_Main.asp?gicode=A{code}'
     url_nv    = f'https://m.stock.naver.com/domestic/stock/{code}/research'
     url_ggl   = f"https://news.google.com/search?q={quote(item)}&hl=ko&gl=KR&ceid=KR:ko"
 
     st.markdown(
-        f'<a href="{url_think}" target="_blank" style="{btn}">Think</a><br>'
+        f'<a href="{url_think}" target="_blank" style="{btn}">Think</a>'
+        f'<a href="{url_min}" target="_blank" style="{btn}">chart</a><br>'
         f'<a href="{url_tr}"    target="_blank" style="{btn}">Tr</a>'
         f'<a href="{url_fn}"    target="_blank" style="{btn}">Fn</a>'
         f'<a href="{url_nv}"    target="_blank" style="{btn}">Nv</a><br>'
