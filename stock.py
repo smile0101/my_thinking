@@ -369,8 +369,14 @@ if CC:
 else:
     info2 = "-"
 
-EPS = _get('EPS', '', '{:.0f}')
-PER = round(CC/EPS, 1)
+try:
+    eps_val = float(EPS)
+    if CC is not None and eps_val != 0:
+        PER = round(CC / eps_val, 1)
+    else:
+        PER = '-'
+except (ValueError, TypeError):
+    PER = '-'
 # ── cool[1]: 유통 / PER / ROE ──────────────────────
 with cool[1]:
     st.markdown(
