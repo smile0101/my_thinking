@@ -274,7 +274,7 @@ if code:
     html += '</tbody></table>'
     st.markdown(html, unsafe_allow_html=True)
 
-col1, col2 = st.columns([3, 2.2])
+col1, col2 = st.columns([3, 2.5])
 
 with col2:
     HLW, HCW = calc_hl(df['종가'].head(5))  if n >= 5  else (None, None)
@@ -285,7 +285,7 @@ with col2:
 
     if HL:
         st.markdown(
-            f"<span style='font-size:22px;color:#555;'>{HL}</span>",
+            f"<span style='font-size:20px;color:#555;'>{HL}</span>",
             unsafe_allow_html=True
         )
 
