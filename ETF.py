@@ -135,8 +135,8 @@ with col_input:
 
 with col_name:
     if code:
-        with st.spinner("종목명 조회 중..."):
-            item = _naver_code_to_name(code)
+        item = _naver_code_to_name(code)
+        # with st.spinner("종목명 조회 중..."):            
 
         # ── main.naver 파싱 (시가총액 · 구성종목) ──────
         tot = ''
@@ -158,7 +158,7 @@ with col_name:
         name_str = item if item else '(종목명 없음)'
         st.markdown(
             f"### {name_str}"
-            + (f"&nbsp;&nbsp;<span style='font-size:16px;color:#555;'>시총 {tot}</span>" if tot else ""),
+            + (f"&nbsp;&nbsp;<span style='font-size:14px;color:#555;'>시총 {tot}</span>" if tot else ""),
             unsafe_allow_html=True
         )
 
@@ -168,7 +168,7 @@ col_comp, col_btn = st.columns([3.5, 2])
 with col_comp:
     if kk:
         st.markdown(
-            f"<span style='font-size:18px;color:#555;'>구성 : {kk}</span>",
+            f"<span style='font-size:16px;color:#555;'>구성 : {kk}</span>",
             unsafe_allow_html=True
         )
 
