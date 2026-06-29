@@ -36,20 +36,6 @@ def set_korean_font():
 
 set_korean_font()
 
-# ── 종목명 조회 ───────────────────────────────────────
-def naver_code_to_name(code: str):
-    try:
-        url = f"https://search.naver.com/search.naver?query={code}"
-        res = requests.get(url, headers={"User-Agent": "Mozilla/5.0"}, timeout=5)
-        soup = BeautifulSoup(res.text, "lxml")
-        for sel in [".main_pack .stk_nm", ".name_area .name", ".api_subject_bx .title"]:
-            tag = soup.select_one(sel)
-            if tag:
-                return tag.get_text().strip()
-    except Exception as e:
-        print(f"[코드→이름] 오류 ({code}): {e}")
-    return ""
-
 # ── 외국인 페이지 크롤링 ──────────────────────────────
 def _fetch_naver_frgn_page(code):
     headers = {"User-Agent": "Mozilla/5.0"}
@@ -126,7 +112,6 @@ def fmt_cell(val, row):
 col_input, col_name = st.columns([1, 7])
 
 # 변수 초기화 (col_name 밖에서도 참조 가능하도록)
-name_str = ''
 kk       = ''
 
 with col_input:
@@ -135,8 +120,33 @@ with col_input:
 
 with col_name:
     if code:
-        with st.spinner("종목명 조회 중..."):  
-            item = naver_code_to_name(code)
+        with st.spinner("종목명 조회 중..."):
+            try:
+                url  = f'https://finance.naver.com/item/main.naver?code={code}'
+                res  = requests.get(url, headers={"User-Agent": "Mozilla/5.0"}, timeout=7)
+                soup = BeautifulSoup(res.text, "lxml")
+
+                item = ''
+                for sel in [
+                    "div.wrap_company h2 a",
+                    "h2.h_company a",
+                    "div.wrap_company h2",
+                    "h2.h_company",
+                ]:
+                    tag = soup.select_one(sel)
+                    if tag:
+                        item = tag.get_text(strip=True)
+                        break
+
+                # 위 셀렉터 모두 실패 시 <title> 태그로 fallback
+                if not item:
+                    title_tag = soup.find("title")
+                    if title_tag:
+                        item = title_tag.get_text(strip=True).split(":")[0].strip()
+
+            except Exception as e:
+                print(f"[코드→이름] 오류 ({code}): {e}")
+                item = ''
 
         # ── main.naver 파싱 (시가총액 · 구성종목) ──────
         tot = ''
