@@ -60,7 +60,7 @@ def _naver_code_to_name(code: str):
 
     except Exception as e:
         print(f"[코드→이름] 네이버 검색 오류 ({code}): {e}")
-    return None
+    return ""
 
 # ── 외국인 페이지 크롤링 ──────────────────────────────
 def _fetch_naver_frgn_page(code):
