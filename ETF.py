@@ -38,28 +38,16 @@ set_korean_font()
 
 # ── 종목명 조회 ───────────────────────────────────────
 def _naver_code_to_name(code: str):
-   try:
+    try:
         url = f"https://search.naver.com/search.naver?query={code}"
         res = requests.get(url, headers={"User-Agent": "Mozilla/5.0"}, timeout=5)
         soup = BeautifulSoup(res.text, "lxml")
-
-        # 방법1: 주식 종목명 태그
-        tag = soup.select_one(".main_pack .stk_nm")
-        if tag:
-            return tag.get_text().strip()
-
-        # 방법2: 종목 이름 대체 태그
-        tag = soup.select_one(".name_area .name")
-        if tag:
-            return tag.get_text().strip()
-            
-        # 방법3: ETF/금융 상품 등 상단 타이틀 태그 (0204D0 등 대비)
-        tag = soup.select_one(".api_subject_bx .title")
-        if tag:
-            return tag.get_text().strip()
-
+        for sel in [".main_pack .stk_nm", ".name_area .name", ".api_subject_bx .title"]:
+            tag = soup.select_one(sel)
+            if tag:
+                return tag.get_text().strip()
     except Exception as e:
-        print(f"[코드→이름] 네이버 검색 오류 ({code}): {e}")
+        print(f"[코드→이름] 오류 ({code}): {e}")
     return ""
 
 # ── 외국인 페이지 크롤링 ──────────────────────────────
