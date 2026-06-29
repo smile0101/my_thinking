@@ -37,7 +37,7 @@ def set_korean_font():
 set_korean_font()
 
 # ── 종목명 조회 ───────────────────────────────────────
-def _naver_code_to_name(code: str):
+def naver_code_to_name(code: str):
     try:
         url = f"https://search.naver.com/search.naver?query={code}"
         res = requests.get(url, headers={"User-Agent": "Mozilla/5.0"}, timeout=5)
@@ -135,8 +135,8 @@ with col_input:
 
 with col_name:
     if code:
-        item = _naver_code_to_name(code)
-        # with st.spinner("종목명 조회 중..."):            
+        with st.spinner("종목명 조회 중..."):  
+            item = naver_code_to_name(code)
 
         # ── main.naver 파싱 (시가총액 · 구성종목) ──────
         tot = ''
