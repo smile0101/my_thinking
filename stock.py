@@ -421,7 +421,7 @@ with cool[3]:
     url_think = f'https://www.thinkpool.com/item/{code}'
     url_min   = f'https://m.stock.naver.com/fchart/domestic/stock/{code}'
     url_tr    = f'https://kr.tradingview.com/chart/Y3Tq45pg/?symbol=KRX%3A{code}'
-    url_fn    = f'https://comp.fnguide.com/SVO2/ASP/SVD_Main.asp?gicode=A{code}'
+    url_fn    = f"https://wcomp.fnguide.com/?c_id=AA&menu_type=01&cmp_cd={code}"
     url_nv    = f'https://m.stock.naver.com/domestic/stock/{code}/research'
     url_ggl   = f"https://news.google.com/search?q={quote(item)}&hl=ko&gl=KR&ceid=KR:ko"
 
