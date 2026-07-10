@@ -1,37 +1,26 @@
 import streamlit as st
 import pandas as pd
-import requests
-import webbrowser
 import numpy as np
 import FinanceDataReader as fdr
 import matplotlib.pyplot as plt
-from io import StringIO
-from datetime import datetime, timedelta, timezone
 from scipy.signal import find_peaks
-import matplotlib.gridspec as gridspec
 from matplotlib import font_manager, rc
 
 
 # 페이지 설정
-st.set_page_config(page_icon="♥", page_title="증시그래프", layout="wide")
+st.set_page_config(page_icon="♥", page_title="지수", layout="wide")
 
-st.title("📊 증시")
-
-# 이미지 데이터 딕셔너리
+st.subheader("📊 지수") 
 keys = {
-    '다우(1일)': 'https://ssl.pstatic.net/imgfinance/chart/world/continent/DJI@DJI.png',
-    '다우(3개월)': 'https://ssl.pstatic.net/imgfinance/chart/world/month3/DJI@DJI.png',
-    '나스닥(1일)': 'https://ssl.pstatic.net/imgfinance/chart/world/continent/NAS@IXIC.png',
-    '나스닥(1개월)': 'https://ssl.pstatic.net/imgfinance/chart/world/month3/NAS@IXIC.png',
-    '코스피(1일)': 'https://t1.daumcdn.net/media/finance/chart/kr/stock/d/KGG01P.png?',
-    # '코스피(1일)': 'https://t1.daumcdn.net/media/finance/chart/kr/stock/d/KGG01P.png?timestamp=202602251558',
-    # '코스피(1일)': 'https://ssl.pstatic.net/imgfinance/chart/sise/siseMainKOSPI.png',
-    '코스피(1개월)': 'https://t1.daumcdn.net/media/finance/chart/kr/stock/m/KGG01P.png?',
-    # '코스피(3개월)': 'https://ssl.pstatic.net/imgstock/chart3/day90/KOSPI.png',
-    # '코스닥(1일)': 'https://ssl.pstatic.net/imgfinance/chart/sise/siseMainKOSDAQ.png',
-    '코스닥(1일)':'https://t1.daumcdn.net/media/finance/chart/kr/stock/d/QGG01P.png?timestamp=202603021557',
-    '코스닥(1개월)': 'https://t1.daumcdn.net/media/finance/chart/kr/stock/m/QGG01P.png'
-    # '코스닥(3개월)': 'https://ssl.pstatic.net/imgstock/chart3/day90/KOSDAQ.png?sidcode=1757835720774',
+
+    '코스피': 'https://t1.daumcdn.net/media/finance/chart/kr/stock/d/KGG01P.png?',
+    '코스닥':'https://t1.daumcdn.net/media/finance/chart/kr/stock/d/QGG01P.png?timestamp=202603021557',
+    '다우': 'https://ssl.pstatic.net/imgfinance/chart/world/continent/DJI@DJI.png', 
+    '나스닥': 'https://ssl.pstatic.net/imgfinance/chart/world/continent/NAS@IXIC.png',
+    '투자자(코스피)' : 'https://ssl.pstatic.net/imgfinance/chart/sise/trendUitradeDayKOSPI.png?sid=1697448197552',
+    '투자자(코스닥)' : 'https://ssl.pstatic.net/imgfinance/chart/sise/trendUitradeDayKOSDAQ.png?sid=1697448286377',
+    '증시자금' : 'https://ssl.pstatic.net/imgfinance/chart/sise/deposit_customer_deposit.png',
+    'BTC(1일)' : 'https://imagechart.upbit.com/d/mini/BTC.png',
 }
 
 items = list(keys.items()) # (이름, URL) 튜플 리스트로 변환
@@ -44,32 +33,62 @@ for i in range(0, len(items), cols_per_row):
         with cols[idx]: 
             st.caption(f"**{name}**") # 이미지 위에 제목 표시
             st.image(url, width='stretch') #`width='content'
+#########################  지수 그래프 #######################################################################
+def load_data(code):
+    try:
+        dd = fdr.DataReader(code).tail(200).reset_index()
+        if 'index' in dd.columns:
+            dd = dd.rename(columns={'index': 'Date'})
+        if 'Change' in dd.columns:
+            dd['Change'] = round(dd['Change'] * 100, 2)
+        else:
+            dd['Change'] = round(dd['Close'].pct_change() * 100, 2)
+        for n in [5, 10, 20, 60, 120]:
+            dd[f'MA{n}'] = dd['Close'].rolling(window=n).mean()
+        dd['MA5_d']  = dd['MA5'].diff()
+        dd['MA10_d'] = dd['MA10'].diff()
+        dd['S5']  = np.degrees(np.arctan(np.gradient(dd['MA5'].values)))
+        dd['S10'] = np.degrees(np.arctan(np.gradient(dd['MA10'].values)))
 
-keys1 = {
-    '투자자(코스피)' : 'https://ssl.pstatic.net/imgfinance/chart/sise/trendUitradeDayKOSPI.png?sid=1697448197552',
-    '투자자(코스닥)' : 'https://ssl.pstatic.net/imgfinance/chart/sise/trendUitradeDayKOSDAQ.png?sid=1697448286377',
-    '증시자금' : 'https://ssl.pstatic.net/imgfinance/chart/sise/deposit_customer_deposit.png',
-    'BTC(1일)' : 'https://imagechart.upbit.com/d/mini/BTC.png',
-    '환율(1개월)': 'https://ssl.pstatic.net/imgfinance/chart/marketindex/area/month/FX_USDKRW.png',
-    '엔화(1개월)' : 'https://ssl.pstatic.net/imgfinance/chart/marketindex/area/month/FX_JPYKRW.png',
-    'WTI(1개월)' : 'https://ssl.pstatic.net/imgfinance/chart/marketindex/area/month/OIL_CL.png',    
-    '국내금' :'https://ssl.pstatic.net/imgfinance/chart/marketindex/area/month/CMDT_GC.png',
-    '구리' : 'https://ssl.pstatic.net/imgfinance/chart/marketindex/area/month/CMDT_CDY.png',
-    '일본중시': 'https://ssl.pstatic.net/imgfinance/chart/world/month3/NII@NI225.png',
-    '상해증시' : 'https://ssl.pstatic.net/imgfinance/chart/world/month3/SHS@000001.png',
-    '인도증시'  : 'https://ssl.pstatic.net/imgfinance/chart/world/month3/INI@BSE30.png'}
+        dd = dd.tail(55).copy()
+        dd['Date'] = pd.to_datetime(dd['Date']).dt.strftime('%m.%d')
+        return dd
+    except Exception:
+        print("실패")
+        return None
 
-items = list(keys1.items()) # (이름, URL) 튜플 리스트로 변환
-cols_per_row = 4
-for i in range(0, len(items), cols_per_row):
-    row_items = items[i : i + cols_per_row]
-    cols = st.columns(cols_per_row)
-    
-    for idx, (name, url) in enumerate(row_items):
-        with cols[idx]: 
-            st.caption(f"**{name}**") # 이미지 위에 제목 표시
-            st.image(url, width='stretch') #`width='content'
-st.divider()
+
+# ── 누적합 기간 컬럼 계산 ─────────────────────────────
+def calc_period(df, rows, label):
+    sub = df.tail(rows)
+    return {
+        'Close'  : int(sub['Close'].mean()),
+        'Change': round(sub['Change'].sum(), 1), }
+
+def fmt_cell(val, row):
+    if val is None or (isinstance(val, float) and pd.isna(val)):
+        return ''
+    if row == 'Close':
+        return f'{int(val):,}'
+    if row == 'Change':
+        return f'{val:+.1f}%'
+    return str(val)
+
+def clean(text):
+    text = text.strip()
+    return "" if text in ("-", "", "N/A") else text
+
+def td_after_th(container, keyword, exclude=None):
+    if not container:
+        return ""
+    for th in container.find_all("th"):
+        text = th.get_text(" ", strip=True)
+        if keyword in text and (not exclude or exclude not in text):
+            td = th.find_next_sibling("td")
+            if td:
+                return clean(td.get_text(strip=True).replace(",", ""))
+    return ""
+
 
 def graph_n(item, d):
     # 이동평균선 간 교차점 찾기 함수
@@ -124,15 +143,8 @@ def graph_n(item, d):
     fig, axs = plt.subplots(3, 1, figsize=(11, 7), sharex=True)  # 12, 9.5 / 7.5, 7
     ax2, ax3, ax4 = axs
 
-    CC = d['Close'].iloc[-1]
-    if item == '비트코인':
-        RR = round((CC-165388411)/165388411*100,1)
-        
-    else :
-        RR = round((CC-201864)/201864*100,1)
-    Mo = int(RR * 20)
-
-    ax2.set_title(f"{item} / {RR}%,  {Mo}"  , fontsize=14, color="blue")
+    CC = int(d['Close'].iloc[-1])
+    ax2.set_title(f"{item} "  , fontsize=12, color="blue")
 
     # [1] HL 그래프 (맨 위)
     ax2.plot(d['Date'], d['Close'], label='Close', color='blue', linewidth=1.5)
@@ -151,6 +163,7 @@ def graph_n(item, d):
     ax3.plot(d['Date'], d['MA5'], linestyle='-.', color='green', label='5일')
     ax3.plot(d['Date'], d['MA20'], linestyle='-', color='magenta')
     ax3.plot(d['Date'], d['MA60'], linestyle='-', color='blue')
+    ax3.plot(d['Date'], d['MA120'], linestyle='-', color='black', alpha=0.5)
     ax3.axhline(round(d['Close'].mean(), 1), color='orange', linestyle='--')
 
     ax3.plot(min_dates_day, mini_day, "o", color='purple', markersize=5)
@@ -180,117 +193,124 @@ def graph_n(item, d):
     ax4.tick_params(axis='x', rotation=45)
     for label in ax4.get_xticklabels():
         label.set_fontsize(6.6)
-    # ax4.legend(loc='upper left')
+
     ax2.tick_params(axis='y', labelsize=6)
     ax3.tick_params(axis='y', labelsize=6)
     ax4.tick_params(axis='y', labelsize=6)
-
+    ax2_twin.tick_params(axis='y', labelsize=5)
+    ax42.tick_params(axis='y', labelsize=5)
+    plt.subplots_adjust(hspace=0.1)
     plt.rcParams['axes.unicode_minus'] = False
     return fig
 
-def Gold( ):
-    headers = {"User-Agent": "Mozilla/5.0"}
-    all_data = [] 
-    for page in range(1, 20):
-        url = f'https://finance.naver.com/marketindex/goldDailyQuote.naver?&page={page}'
-        res = requests.get(url, headers=headers)
-        df = pd.read_html(StringIO(res.text))[0]
-        all_data.append(df)
-        dfv = pd.concat(all_data, ignore_index=True)
-        dfv.columns = dfv.columns.droplevel(0)
-        dfv.columns = ['Date','Close','bi','High','Low','sen','rec','F','G']
-        dfv["Date"] = pd.to_datetime(dfv["Date"])
-        dfv = dfv.sort_values(by="Date")
-        dfv['Change'] = round(dfv['Close'].pct_change() * 100, 2)
-        for n in [5, 10, 20, 60]:
-            dfv[f'MA{n}'] = dfv['Close'].rolling(window=n).mean()
-        dfv['MA5_d'] = dfv['MA5'].diff()
-        dfv['MA10_d'] = dfv['MA10'].diff()
-        d = dfv.tail(35).copy()
-        d['Date'] = pd.to_datetime(d['Date']).dt.strftime('%m.%d')
-    return d
 
-def bit () :
-    url = "https://api.upbit.com/v1/candles/days"
+# ── 지수 목록: (표시이름, 코드) 순서로 정확히 매칭 ─────────────────────
+indices = [('코스피', '^KS11'), ('코스닥', '^KQ11'), ('다우', 'DJI'), ('나스닥', 'IXIC')]
 
-    start = (datetime.now() - timedelta(days=1500)).strftime("%Y-%m-%d")
-    end = datetime.now().strftime("%Y-%m-%d")
+with st.spinner("데이터 수집 중..."):
+    data = {item: load_data(code) for item, code in indices}
 
-    start_datetime = datetime.strptime(start, "%Y-%m-%d")
-    end_datetime = datetime.strptime(end, "%Y-%m-%d") + timedelta(days=1)  # 끝 날짜 포함
+def render_group(group_indices, data):
+    """group_indices 안의 지수들을 통합 테이블 1개 + 그래프(2개씩 한 줄)로 출력"""
+    rows_label = ['Close', 'Change']
+    col_order = None
+    item_tables = {}  # item별 일자+기간 테이블 저장
 
-    all_data = []
-    while start_datetime <= end_datetime:
-        # KST -> UTC 변환
-        to_datetime_utc = end_datetime.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S")
-        params = {
-            'market': 'KRW-BTC',
-            'to': to_datetime_utc,
-            'count': 200
-        }
-        response = requests.get(url, params=params)
-        if response.status_code != 200:
-            raise Exception(f"API 요청 실패: {response.status_code}, {response.text}")
+    for item, _ in group_indices:
+        df = data[item]
+        n = len(df)
+        periods = {}
+        if n >= 5:  periods['1W'] = calc_period(df, 5, '1W')
+        if n >= 10: periods['2W'] = calc_period(df, 10, '2W')
+        if n >= 15: periods['3W'] = calc_period(df, 15, '3W')
+        if n >= 25: periods['1M'] = calc_period(df, 25, '1M')
+        if n >= 50: periods['2M'] = calc_period(df, 50, '2M')
 
-        data = response.json()
-        if not data:
-            break
+        display_10 = df.tail(10)
+        if col_order is None:
+            col_order = list(display_10['Date']) + ['1W', '2W', '3W', '1M', '2M']
 
-        for item in data:
-            all_data.append({
-                'Date': item['candle_date_time_kst'][:10],
-                'Open': item['opening_price'],
-                'High': item['high_price'],
-                'Low': item['low_price'],
-                'Close': item['trade_price'],
-                'volume': item['candle_acc_trade_volume']
-            })
+        day_table = {}
+        for _, row in display_10.iterrows():
+            d = row['Date']
+            day_table[d] = {'Close': int(row['Close']), 'Change': row['Change']}
+        for p in ['1W', '2W', '3W', '1M', '2M']:
+            day_table[p] = periods[p] if p in periods else {k: None for k in rows_label}
 
-        # 데이터의 마지막 날짜를 기준으로 end_datetime 업데이트
-        last_date = datetime.strptime(data[-1]['candle_date_time_kst'], "%Y-%m-%dT%H:%M:%S")
-        end_datetime = last_date - timedelta(days=1)
+        item_tables[item] = day_table
 
-    # DataFrame 생성
-    df = pd.DataFrame(all_data)
-    df = df.sort_values(by='Date')
-    df['Change'] = round(df['Close'].pct_change() * 100, 2)
-    for n in [5, 10, 20, 60]:
-        df[f'MA{n}'] = df['Close'].rolling(window=n).mean()
-    df['MA5_d'] = df['MA5'].diff()
-    df['MA10_d'] = df['MA10'].diff()
-    d = df.tail(35).copy()
-    d['Date'] = pd.to_datetime(d['Date']).dt.strftime('%m.%d')
-    return d
+    html = '''
+    <style>
+        .etf-table { border-collapse:collapse; font-size:22px; width:100%; }
+        .etf-table th, .etf-table td { padding:5px 8px; text-align:center; border:1px solid #ddd; }
+        .etf-table th { background:#f0f0f0; font-weight:bold; }
+        .etf-table td.row-label { text-align:left; font-weight:bold; background:#f8f8f8; }
+        .etf-table td.period { background:#f0fff0; }
+        .etf-table td.sep { border-left:2px solid #888 !important; }
+    </style>
+    <table class="etf-table">
+    <thead><tr><th>항목</th>'''
 
-bb, gg = st.columns([2, 2])
+    for col in col_order:
+        cls = 'class="sep"' if col == '1W' else ''
+        html += f'<th {cls}>{col}</th>'
+    html += '</tr></thead><tbody>'
 
-with bb:
-    d = bit()
-    fig = graph_n('Bit',d)
-    st.pyplot(fig)
+    for item, _ in group_indices:
+        day_table = item_tables[item]
+        for rlab in rows_label:
+            html += f'<tr><td class="row-label">{item}</td>'
+            for col in col_order:
+                val = day_table[col].get(rlab) if day_table[col] else None
+                text = fmt_cell(val, rlab)
+                cls_list = []
+                if col in ['1W', '2W', '1M']:
+                    cls_list.append('period')
+                if col == '1W':
+                    cls_list.append('sep')
+                bg = ''
+                if rlab == 'Change':
+                    if val is not None and not (isinstance(val, float) and pd.isna(val)):
+                        if val > 0:
+                            bg = 'background-color:#FFD1DC;'
+                html += f'<td class="{" ".join(cls_list)}" style="{bg}">{text}</td>'
+            html += '</tr>'
 
-with gg:
-    go = Gold()
-    fig = graph_n('Gold',go)
-    st.pyplot(fig)
+    html += '</tbody></table>'
+    st.markdown(html, unsafe_allow_html=True)
+    # st.divider()
 
-K = 2
-if K == 1 :
+    for i in range(0, len(group_indices), 2):
+        row_items = group_indices[i:i+2]
+        cols = st.columns([2, 2])
+        for col, (item, _) in zip(cols, row_items):
+            with col:
+                fig = graph_n(item, data[item])
+                st.pyplot(fig)
 
-    if 'browser_opened' not in st.session_state:
-        st.session_state['browser_opened'] = False
+render_group([('코스피', '^KS11'), ('코스닥', '^KQ11')], data)
+render_group([('다우', 'DJI'), ('나스닥', 'IXIC')], data)
 
-    # 2. 실행 로직: 아직 열린 적이 없다면 실행
-    if not st.session_state['browser_opened']:
-        webbrowser.open('https://markets.hankyung.com/marketmap/kospi')# 코스피맵
-        webbrowser.open('https://markets.hankyung.com/marketmap/kosdaq')
-        webbrowser.open('https://finviz.com/map.ashx')# S&p
-        webbrowser.open('https://www.thinkpool.com/') ##think
-        webbrowser.open('https://stockplus.com/m/news/popular') # 증권플러스 
-        webbrowser.open('https://www.thinkpool.com/analysis/sise') # 이슈종목
-        webbrowser.open('https://seibro.or.kr/websquare/control.jsp?w2xPath=/IPORTAL/user/company/BIP_CNTS01021V.xml&menuNo=19') # 배당, 유상증자
-        webbrowser.open('https://finance.naver.com/sise/sise_deal_rank.naver') # 외인 순매수
-        # 상태를 True로 변경하여 다시 실행되지 않도록 방지
-        st.session_state['browser_opened'] = True
+##################################################################################################################
 
+keys1 = {
 
+    '환율(1개월)': 'https://ssl.pstatic.net/imgfinance/chart/marketindex/area/month/FX_USDKRW.png',
+    '엔화(1개월)' : 'https://ssl.pstatic.net/imgfinance/chart/marketindex/area/month/FX_JPYKRW.png',
+    'WTI(1개월)' : 'https://ssl.pstatic.net/imgfinance/chart/marketindex/area/month/OIL_CL.png',    
+    '국내금' :'https://ssl.pstatic.net/imgfinance/chart/marketindex/area/month/CMDT_GC.png',
+    '구리' : 'https://ssl.pstatic.net/imgfinance/chart/marketindex/area/month/CMDT_CDY.png',
+    '일본중시': 'https://ssl.pstatic.net/imgfinance/chart/world/month3/NII@NI225.png',
+    '상해증시' : 'https://ssl.pstatic.net/imgfinance/chart/world/month3/SHS@000001.png',
+    '인도증시'  : 'https://ssl.pstatic.net/imgfinance/chart/world/month3/INI@BSE30.png'}
+
+items = list(keys1.items()) # (이름, URL) 튜플 리스트로 변환
+cols_per_row = 4
+for i in range(0, len(items), cols_per_row):
+    row_items = items[i : i + cols_per_row]
+    cols = st.columns(cols_per_row)
+    
+    for idx, (name, url) in enumerate(row_items):
+        with cols[idx]: 
+            st.caption(f"**{name}**") # 이미지 위에 제목 표시
+            st.image(url, width='stretch') #`width='content'
