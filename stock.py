@@ -522,7 +522,7 @@ cols1[2].image(f'https://webchart.thinkpool.com/2021ReNew/stock1day_volume/A{cod
 # ─────────────────────────────────────────
 # 수급 테이블 + 차트
 # ─────────────────────────────────────────
-st.divider()
+
 tab1, tab2 = st.columns([1.1, 2])
 
 with tab1:
