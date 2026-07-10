@@ -9,9 +9,7 @@ import streamlit as st
 import FinanceDataReader as fdr
 from urllib.parse import quote
 import matplotlib.font_manager as fm
-import koreanize_matplotlib
 import numpy as np
-import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from scipy.signal import find_peaks
 
@@ -276,9 +274,7 @@ with cool[0]:
 
     if st.session_state['selected_name'] not in name_list:
         st.session_state['selected_name'] = name_list[0]
-        st.session_state['selected_code'] = (
-            df[df['종목명'] == name_list[0]].iloc[0]['종목코드']
-        )
+        st.session_state['selected_code'] = ( df[df['종목명'] == name_list[0]].iloc[0]['종목코드'] )
 
     try:
         current_index = name_list.index(st.session_state['selected_name'])
@@ -286,19 +282,11 @@ with cool[0]:
         current_index = 0
 
     # 종목 선택 셀렉박스
-    item = st.selectbox(
-        "종목 선택",
-        name_list,
-        index=current_index,
-        key='stock_selector',
-        on_change=update_stock,
-        label_visibility='collapsed'
-    )
+    item = st.selectbox( "종목 선택", name_list, index=current_index, key='stock_selector', 
+                        on_change=update_stock, label_visibility='collapsed' )
 
     if 'selected_code' not in st.session_state:
-        st.session_state['selected_code'] = (
-            df[df['종목명'] == item].iloc[0]['종목코드']
-        )
+        st.session_state['selected_code'] = ( df[df['종목명'] == item].iloc[0]['종목코드'] )
 
     cur_interest = int(df[df['종목명'] == item].iloc[0].get('관심', 0))
     default_pill = str(cur_interest) if cur_interest > 0 else None
@@ -312,7 +300,7 @@ with cool[0]:
         label_visibility="collapsed",
     )
 
-code = st.session_state['selected_code']
+code = st.session_state['selected_code']  ##### code
 
 # 선택 종목 row_data 전역 확정
 row_data = df[df['종목명'] == item].iloc[0]
@@ -578,8 +566,7 @@ with tab1:
     # Sum 행 추가 (최근 + 이전 합계)
     sum_row = pd.DataFrame(
         {col: [summary_df[col].sum()] for col in summary_df.columns},
-        index=['Sum']
-    )
+        index=['Sum'] )
     summary_df = pd.concat([summary_df, sum_row])
 
     def color_val(val):
@@ -652,141 +639,151 @@ memo_val = st.text_area(
 if st.button("💾 메모 저장", key=f"btn_memo_{item}"):
     save_data("memos", item, memo_val)
 
-# ─────────────────────────────────────────
-# Plotly 차트
-# ─────────────────────────────────────────
-@st.cache_data(ttl=600)
-def showV_plotly(stock_name, stock_code):
-    def load_data(code):
-        try:
-            dd = fdr.DataReader(code).tail(200).reset_index()
-            if 'index' in dd.columns:
-                dd = dd.rename(columns={'index': 'Date'})
-            if 'Change' in dd.columns:
-                dd['Change'] = round(dd['Change'] * 100, 2)
-            else:
-                dd['Change'] = round(dd['Close'].pct_change() * 100, 2)
-            for n in [5, 10, 20, 60, 120]:
-                dd[f'MA{n}'] = dd['Close'].rolling(window=n).mean()
-            dd['MA5_d']  = dd['MA5'].diff()
-            dd['MA10_d'] = dd['MA10'].diff()
-            dd['S5']  = np.degrees(np.arctan(np.gradient(dd['MA5'].values)))
-            dd['S10'] = np.degrees(np.arctan(np.gradient(dd['MA10'].values)))
-            return dd.tail(30).copy()
-        except Exception:
-            print(stock_name)
-            return None
+#############################################################################
 
-    d = load_data(stock_code)
-    if d is None or d.empty:
-        return None
-    d_max = d['Close'].max()
-    d_min = d['Close'].min()
-    dgap  = (d_max - d_min) / d_min * 100
-    
-#### 레이아웃
-    fig = make_subplots( rows=4, cols=1, shared_xaxes=True, vertical_spacing=0.01,
-        row_heights=[0.3, 0.32, 0.25, 0.13],
-        specs=[ [{"secondary_y": True}], [{"secondary_y": False}], [{"secondary_y": True}], [{"secondary_y": True}], ] )
+def graph_n(item, d):
+    def find_cross_points(df, col1, col2):
+        cross_points = []
+        for i in range(1, len(df)):
+            if (df[col1].iloc[i] > df[col2].iloc[i] and df[col1].iloc[i - 1] <= df[col2].iloc[i - 1]) or \
+               (df[col1].iloc[i] < df[col2].iloc[i] and df[col1].iloc[i - 1] >= df[col2].iloc[i - 1]):
+                cross_points.append(i - 1)
+        return cross_points
 
-    # Chart 1: Price + Change bar
-    fig.add_trace(go.Scatter(x=d['Date'], y=d['Close'], name='Close', line=dict(color='blue', width=3)), row=1, col=1)
-    fig.add_trace(go.Scatter(x=d['Date'], y=d['High'],  name='High',  line=dict(color='red',   width=2, dash='dash')), row=1, col=1)
-    fig.add_trace(go.Scatter(x=d['Date'], y=d['Low'],   name='Low',   line=dict(color='green', width=2, dash='dash')), row=1, col=1)
-    fig.add_trace(go.Bar(x=d['Date'], y=d['Change'], name='Change(%)', marker_color='rgba(150,150,150,0.3)'), row=1, col=1, secondary_y=True)
+    def extract_last_cross_data(df, cross_points, col1, col2):
+        if cross_points:
+            last_cross_index = cross_points[-1]
+            last_cross_date = df['Date'].iloc[last_cross_index]
+            last_cross_value = df[[col1, col2]].iloc[last_cross_index].mean()
+            return last_cross_date, last_cross_value
+        return None, None
 
-    d_len = len(d)
-    if d_len > 20:
-        configs = [
-            {'days': 20, 'T': 1,  'm_color': '#FF5733', 'line_color': 'red'},
-            {'days': 40, 'T': 20, 'm_color': '#33FF57', 'line_color': 'green'},
-            {'days': 60, 'T': 40, 'm_color': '#3357FF', 'line_color': 'blue'},
-        ]
-        for conf in configs:
-            offset = conf['days']
-            cha    = conf['T']
-            if d_len > offset:
-                k            = 30 - offset
-                x_pos        = d['Date'].iloc[k]
-                x_end        = d['Date'].iloc[k + 5]
-                target_price = d['Close'].iloc[k]
-                d_sub  = d.iloc[-offset:-cha]
-                p_max  = d_sub['Close'].max()
-                p_min  = d_sub['Close'].min()
-                gap_pct = (p_max - p_min) / p_min * 100
-                for y_val in [p_max, p_min]:
-                    fig.add_shape(type="line",
-                        x0=x_pos, y0=y_val, x1=x_end, y1=y_val,
-                        line=dict(color=conf['line_color'], width=1, dash="dot"),
-                        row=1, col=1)
-                fig.add_annotation(
-                    x=x_pos, y=p_max, ax=x_pos, ay=p_min,
-                    xref="x1", yref="y1", axref="x1", ayref="y1",
-                    text="", showarrow=True,
-                    arrowhead=3, arrowsize=1, arrowwidth=1.5, arrowcolor=conf['line_color'],
-                    row=1, col=1)
-                fig.add_annotation(
-                    x=x_pos, y=target_price,
-                    xref="x1", yref="y1",
-                    text=f"{gap_pct:.0f}%",
-                    showarrow=False,
-                    font=dict(size=18, color=conf['line_color']),
-                    bgcolor="white", bordercolor=conf['line_color'],
-                    borderwidth=1, borderpad=2,
-                    row=1, col=1)
+    def find_extrema(values):
+        peaks, _ = find_peaks(values)
+        valleys, _ = find_peaks(-values)
+        return peaks, valleys
 
-    fig.add_annotation(x=d['Date'].iloc[1], y=d_max, text=f" Max {int(d_max):,}",
-        showarrow=False, yanchor="bottom", xanchor="left", font=dict(size=16), row=1, col=1)
-    fig.add_annotation(x=d['Date'].iloc[1], y=d_min, text=f" Min {int(d_min):,}",
-        showarrow=False, yanchor="top", xanchor="left", font=dict(size=16), row=1, col=1)
-    fig.add_annotation(
-        x=d['Date'].iloc[1], y=(d_max + d_min) / 2, text=f"{dgap:.0f}%",
-        showarrow=False, font=dict(size=18, color='black'),
-        bgcolor="yellow", bordercolor='black', borderwidth=1, borderpad=2, row=1, col=1)
+    def extract_extrema_data(df, values, peaks, valleys):
+        maxi = values.iloc[peaks]
+        mini = values.iloc[valleys]
+        max_dates = df['Date'].iloc[peaks]
+        min_dates = df['Date'].iloc[valleys]
+        return maxi, mini, max_dates, min_dates
 
-    # Chart 2: MA + peaks/valleys
-    ma_colors = {'MA5': 'green', 'MA20': 'magenta', 'MA60': 'blue', 'MA120': 'darkgray'}
-    for ma, color in ma_colors.items():
-        fig.add_trace(go.Scatter(x=d['Date'], y=d[ma], name=ma, line=dict(color=color, width=2)), row=2, col=1)
-    fig.add_trace(go.Scatter(x=d['Date'], y=d['Close'], name='Close2', line=dict(color='black', width=1.5, dash='dash')), row=2, col=1)
-    peaks,   _ = find_peaks(d['Close'])
-    valleys, _ = find_peaks(-d['Close'])
-    fig.add_trace(go.Scatter(x=d['Date'].iloc[peaks],   y=d['Close'].iloc[peaks],   mode='markers', marker=dict(color='red',    size=14), name='Peaks'),   row=2, col=1)
-    fig.add_trace(go.Scatter(x=d['Date'].iloc[valleys], y=d['Close'].iloc[valleys], mode='markers', marker=dict(color='purple', size=14), name='Valleys'), row=2, col=1)
+    values_day = d['Close']
+    values_5day = d['MA5'].dropna()
 
-    # Chart 3: MA5 / MA10 + MA5 Diff bar
-    fig.add_trace(go.Scatter(x=d['Date'], y=d['MA5'],  name='MA5',  line=dict(color='red')),  row=3, col=1)
-    fig.add_trace(go.Scatter(x=d['Date'], y=d['MA10'], name='MA10', line=dict(color='blue')), row=3, col=1)
-    fig.add_trace(go.Bar(
-        x=d['Date'], y=d['MA5_d'], name='MA5 Diff',
-        marker_color=['royalblue' if v >= 0 else 'salmon' for v in d['MA5_d']],
-        opacity=0.6
-    ), row=3, col=1, secondary_y=True)
+    peaks_day, valleys_day = find_extrema(values_day)
+    peaks_5day, valleys_5day = find_extrema(values_5day)
 
-    # Chart 4: Angle (S5, S10)
-    d['S5_detail']  = d['S5'].clip(lower=89.7)
+    maxi_day, mini_day, max_dates_day, min_dates_day = extract_extrema_data(d, values_day, peaks_day, valleys_day)
+    maxi_5day, mini_5day, max_dates_5day, min_dates_5day = extract_extrema_data(d, values_5day, peaks_5day, valleys_5day)
+
+    cross_close_20_points = find_cross_points(d, 'Close', 'MA20')
+    last_cross_close_20_date, last_cross_close_20_value = extract_last_cross_data(d, cross_close_20_points, 'Close', 'MA20')
+
+    cross_close_60_points = find_cross_points(d, 'Close', 'MA60')
+    last_cross_close_60_date, last_cross_close_60_value = extract_last_cross_data(d, cross_close_60_points, 'Close', 'MA60')
+
+    # rc('font', family='Malgun Gothic')
+    fig, axs = plt.subplots(4, 1, figsize=(14, 6), sharex=True)  #### 사이즈 크기
+    ax2, ax3, ax4, ax5 = axs
+
+    ax2.set_title(f"{item} ", fontsize=10, color="blue")
+
+    ax2.plot(d['Date'], d['Close'], label='Close', color='blue', linewidth=1.5)
+    ax2.plot(d['Date'], d['High'], label='High', color='green', linestyle='--', linewidth=1.2)
+    ax2.plot(d['Date'], d['Low'], label='Low', color='red', linestyle='--', linewidth=1.2)
+    for j in range(len(d)):
+        ax2.axvline(x=d['Date'].iloc[j], color='lightgray', linestyle=':', linewidth=0.8, alpha=0.8)
+    ax2_twin = ax2.twinx()
+    ax2_twin.bar(d['Date'], d['Change'], color='gray', alpha=0.3, label='Change (%)')
+    for i in [-3, -2, -1]:
+        ax2_twin.text(d['Date'].iloc[i], d['Change'].iloc[i] + 0.1, str(d['Change'].iloc[i]), ha='center',
+                      va='bottom', fontsize=8, color='black', fontweight='bold')
+
+    ax3.plot(d['Date'], d['Close'], linestyle='--', color='pink')
+    ax3.plot(d['Date'], d['MA5'], linestyle='-.', color='green', label='5일')
+    ax3.plot(d['Date'], d['MA20'], linestyle='-', color='magenta')
+    ax3.plot(d['Date'], d['MA60'], linestyle='-', color='blue')
+    ax3.plot(d['Date'], d['MA120'], linestyle='-', color='black', alpha=0.5)
+    ax3.axhline(round(d['Close'].mean(), 1), color='orange', linestyle='--')
+
+    ax3.plot(min_dates_day, mini_day, "o", color='purple', markersize=5)
+    ax3.plot(max_dates_day, maxi_day, "o", color='orange', markersize=5)
+    ax3.plot(max_dates_5day, maxi_5day, "o", color='red', markersize=11)
+    ax3.plot(min_dates_5day, mini_5day, "o", color='purple', markersize=12)
+
+    if last_cross_close_20_date:
+        ax3.plot(last_cross_close_20_date, last_cross_close_20_value, "d", color='magenta', markersize=12, label='20일')
+    if last_cross_close_60_date:
+        ax3.plot(last_cross_close_60_date, last_cross_close_60_value, "d", color='blue', markersize=12, label='60일')
+
+    for j in range(len(d)):
+        ax3.axvline(x=d['Date'].iloc[j], color='lightgray', linestyle=':', linewidth=1)
+
+    ax3.legend(loc='upper left')
+
+    ax4.plot(d['Date'], d['MA5'], label='5일', color='red', linewidth=1.5)
+    ax4.plot(d['Date'], d['MA10'], label='10일', color='blue', linewidth=1.3)
+    ax4.axhline(y=d['MA5'].mean(), color='green', linestyle='--', linewidth=2)
+    ax42 = ax4.twinx()
+    ax42.bar(d['Date'], d['MA5_d'], color=np.where(d['MA5_d'] >= 0, 'royalblue', 'salmon'), alpha=0.5)
+    ax4.legend(loc='upper left')
+
+    d['S5_detail'] = d['S5'].clip(lower=89.7)
     d['S10_detail'] = d['S10'].clip(lower=89.7)
-    fig.add_trace(go.Scatter(x=d['Date'], y=d['Close'],     name='Close_Shadow', line=dict(color='black', width=1), opacity=0.4), row=4, col=1)
-    fig.add_trace(go.Scatter(x=d['Date'], y=d['S5_detail'],  name='S5 (Angle)',  line=dict(color='magenta', dash='dashdot')), row=4, col=1, secondary_y=True)
-    fig.add_trace(go.Scatter(x=d['Date'], y=d['S10_detail'], name='S10 (Angle)', line=dict(color='blue',    dash='dash')),    row=4, col=1, secondary_y=True)
 
-###  크기
-    fig.update_layout(
-        height=950, title_text=f"📊 {stock_name}({stock_code})", showlegend=False,
-        template="plotly_white", margin=dict(l=10, r=10, t=25, b=10),
-    )
-    fig.update_xaxes(
-        tickangle=-45, tickformat="%m.%d",
-        tickfont=dict(color="black", size=12, family="Arial"),
-        row=4, col=1
-    )
-    fig.update_yaxes(range=[89.68, 90.03], row=4, col=1, secondary_y=True)
+    ax5.plot(d['Date'], d['S5_detail'], label='S5', color='magenta', linestyle='-.', linewidth=1)
+    ax5.plot(d['Date'], d['S10_detail'], label='S10', color='blue', linestyle='-.', linewidth=1)
+    ax52 = ax5.twinx()
+    ax52.plot(d['Date'], d['Close'], color='black', linestyle='--', alpha=0.5)
+    ax5.legend(loc='upper left')
 
+    for j in range(len(d)):
+        ax5.axvline(x=d['Date'].iloc[j], color='lightgray', linestyle=':', linewidth=1)
+    ax5.tick_params(axis='x', rotation=45)
+    for label in ax5.get_xticklabels():
+        label.set_fontsize(6.6)
+
+    ax2.tick_params(axis='y', labelsize=6)
+    ax3.tick_params(axis='y', labelsize=6)
+    ax4.tick_params(axis='y', labelsize=6)
+    ax5.tick_params(axis='y', labelsize=6)
+    ax2_twin.tick_params(axis='y', labelsize=5)
+    ax42.tick_params(axis='y', labelsize=5)
+    ax52.tick_params(axis='y', labelsize=5)
+    plt.subplots_adjust(hspace=0.1)
+    plt.rcParams['axes.unicode_minus'] = False
     return fig
 
+def load_data(code):
+    try:
+        dd = fdr.DataReader(code).tail(200).reset_index()
+        if 'index' in dd.columns:
+            dd = dd.rename(columns={'index': 'Date'})
+        if 'Change' in dd.columns:
+            dd['Change'] = round(dd['Change'] * 100, 2)
+        else:
+            dd['Change'] = round(dd['Close'].pct_change() * 100, 2)
+        for n in [5, 10, 20, 60, 120]:
+            dd[f'MA{n}'] = dd['Close'].rolling(window=n).mean()
+        dd['MA5_d'] = dd['MA5'].diff()
+        dd['MA10_d'] = dd['MA10'].diff()
+        dd['S5'] = np.degrees(np.arctan(np.gradient(dd['MA5'].values)))
+        dd['S10'] = np.degrees(np.arctan(np.gradient(dd['MA10'].values)))
+
+        dd = dd.tail(45).copy()
+        # 주말 제거: Date를 문자열로 변환 → 카테고리 축으로 사용
+        dd['Date'] = pd.to_datetime(dd['Date']).dt.strftime('%m.%d')
+        return dd
+    except Exception:
+        print("실패")
+        return None
 st.divider()
-fig_plotly = showV_plotly(item, code)
-if fig_plotly:
-    st.plotly_chart(fig_plotly, use_container_width=True)
-else:
-    st.error("Plotly 차트 데이터를 불러올 수 없습니다.")
+dfv = load_data(code)
+fig = graph_n(item, dfv)
+if fig:
+    st.pyplot(fig)
+    plt.close(fig)   # 메모리 누수 방지용으로 닫아주는 게 좋음
+
