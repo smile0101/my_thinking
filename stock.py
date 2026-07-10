@@ -639,7 +639,7 @@ memo_val = st.text_area(
 if st.button("💾 메모 저장", key=f"btn_memo_{item}"):
     save_data("memos", item, memo_val)
 
-#############################################################################
+####################################################################################################
 
 def graph_n(item, d):
     def find_cross_points(df, col1, col2):
@@ -685,8 +685,9 @@ def graph_n(item, d):
     cross_close_60_points = find_cross_points(d, 'Close', 'MA60')
     last_cross_close_60_date, last_cross_close_60_value = extract_last_cross_data(d, cross_close_60_points, 'Close', 'MA60')
 
+    ##########################################################################################################################
     # rc('font', family='Malgun Gothic')
-    fig, axs = plt.subplots(4, 1, figsize=(14, 6), sharex=True)  #### 사이즈 크기
+    fig, axs = plt.subplots(4, 1, figsize=(14, 7), sharex=True)  #### 사이즈 크기
     ax2, ax3, ax4, ax5 = axs
 
     ax2.set_title(f"{item} ", fontsize=10, color="blue")
@@ -780,7 +781,7 @@ def load_data(code):
     except Exception:
         print("실패")
         return None
-st.divider()
+
 dfv = load_data(code)
 fig = graph_n(item, dfv)
 if fig:
