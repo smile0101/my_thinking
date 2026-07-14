@@ -19,6 +19,21 @@ matplotlib.rcParams['axes.unicode_minus'] = False
 st.set_page_config(page_title="주식", layout="wide")
 st.subheader("📊 Stock")
 
+def set_korean_font():
+    plt.rcParams['axes.unicode_minus'] = False
+    font_path = '/tmp/NanumGothic.ttf'
+    font_url  = 'https://github.com/googlefonts/nanum-gothic/raw/main/fonts/ttf/NanumGothic.ttf'
+    if not os.path.exists(font_path):
+        try:
+            import urllib.request
+            urllib.request.urlretrieve(font_url, font_path)
+        except Exception as e:
+            print(f"폰트 다운로드 실패: {e}")
+            return
+    fm.fontManager.addfont(font_path)
+    plt.rc('font', family='NanumGothic')
+
+set_korean_font()
 # ─────────────────────────────────────────
 # 유틸 함수
 # ─────────────────────────────────────────
@@ -711,7 +726,6 @@ def showV( item, d, T=60):
         R2 = ""
 
     ###################################################################################
-    plt.rc('font', family='Malgun Gothic')
     fig = plt.figure(figsize=(18.5,11)) #14, 7.5
     gs = gridspec.GridSpec(4, 1, height_ratios=[0.3, 0.21, 0.21, 0.21], hspace=0.01)
     ax1 = fig.add_subplot(gs[0])
