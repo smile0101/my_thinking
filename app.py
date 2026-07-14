@@ -5,6 +5,7 @@ import FinanceDataReader as fdr
 import matplotlib.pyplot as plt
 from scipy.signal import find_peaks
 from matplotlib import font_manager, rc
+import matplotlib.font_manager as fm
 
 # 페이지 설정
 st.set_page_config(page_icon="♥", page_title="지수", layout="wide")
@@ -156,7 +157,6 @@ def graph_n(item, d):
     cross_close_60_points = find_cross_points(d, 'Close', 'MA60')
     last_cross_close_60_date, last_cross_close_60_value = extract_last_cross_data(d, cross_close_60_points, 'Close', 'MA60')
 
-    rc('font', family='Malgun Gothic')
     fig, axs = plt.subplots(3, 1, figsize=(11, 7), sharex=True)  # 12, 9.5 / 7.5, 7
     ax2, ax3, ax4 = axs
 
@@ -219,7 +219,6 @@ def graph_n(item, d):
     plt.subplots_adjust(hspace=0.1)
     plt.rcParams['axes.unicode_minus'] = False
     return fig
-
 
 # ── 지수 목록: (표시이름, 코드) 순서로 정확히 매칭 ─────────────────────
 indices = [('코스피', '^KS11'), ('코스닥', '^KQ11'), ('다우', 'DJI'), ('나스닥', 'IXIC')]
