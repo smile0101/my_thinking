@@ -21,20 +21,21 @@ st.subheader("📊 신규")
 
 # ── 폰트 ──────────────────────────────────────────────
 def set_korean_font():
-    plt.rcParams['axes.unicode_minus'] = False
-    font_path = '/tmp/NanumGothic.ttf'
-    font_url  = 'https://github.com/googlefonts/nanum-gothic/raw/main/fonts/ttf/NanumGothic.ttf'
-    if not os.path.exists(font_path):
-        try:
-            import urllib.request
-            urllib.request.urlretrieve(font_url, font_path)
-        except Exception as e:
-            print(f"폰트 다운로드 실패: {e}")
+    font_candidates = [
+        "/usr/share/fonts/truetype/nanum/NanumGothic.ttf",  # Linux(Streamlit Cloud)
+        "C:/Windows/Fonts/malgun.ttf",                       # Windows 로컬
+    ]
+    for path in font_candidates:
+        if os.path.exists(path):
+            fm.fontManager.addfont(path)
+            font_name = fm.FontProperties(fname=path).get_name()
+            plt.rc('font', family=font_name)
+            plt.rcParams['axes.unicode_minus'] = False
             return
-    fm.fontManager.addfont(font_path)
-    plt.rc('font', family='NanumGothic')
+    # 못 찾으면 기본값 유지 (한글 깨짐 방지용 최소 조치)
+    plt.rcParams['axes.unicode_minus'] = False
 
-set_korean_font()
+set_korean_font() 
 
 # ── 외국인 페이지 크롤링 ──────────────────────────────
 def _fetch_naver_frgn_page(code):
