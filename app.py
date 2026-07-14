@@ -6,11 +6,28 @@ import matplotlib.pyplot as plt
 from scipy.signal import find_peaks
 from matplotlib import font_manager, rc
 
-
 # 페이지 설정
 st.set_page_config(page_icon="♥", page_title="지수", layout="wide")
-
 st.subheader("📊 지수") 
+
+def set_korean_font():
+    font_candidates = [
+        "/usr/share/fonts/truetype/nanum/NanumGothic.ttf",  # Linux(Streamlit Cloud)
+        "C:/Windows/Fonts/malgun.ttf",                       # Windows 로컬
+    ]
+    for path in font_candidates:
+        if os.path.exists(path):
+            fm.fontManager.addfont(path)
+            font_name = fm.FontProperties(fname=path).get_name()
+            plt.rc('font', family=font_name)
+            plt.rcParams['axes.unicode_minus'] = False
+            return
+    # 못 찾으면 기본값 유지 (한글 깨짐 방지용 최소 조치)
+    plt.rcParams['axes.unicode_minus'] = False
+
+set_korean_font() 
+
+
 keys = {
 
     '코스피': 'https://t1.daumcdn.net/media/finance/chart/kr/stock/d/KGG01P.png?',
