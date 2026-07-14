@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from scipy.signal import find_peaks
 from matplotlib import font_manager, rc
 import matplotlib.font_manager as fm
+import os
 
 # 페이지 설정
 st.set_page_config(page_icon="♥", page_title="지수", layout="wide")
