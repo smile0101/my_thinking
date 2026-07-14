@@ -904,7 +904,10 @@ def load_data(code, T=60, N =1):
         return None
 
 dfv = load_data(code)
-fig = showV(item, df)
+if dfv is None or dfv.empty:
+    st.error(f"{item} 데이터 로드 실패")
+else:
+    fig = showV(item, dfv)
 if fig:
     st.pyplot(fig)
     plt.close(fig)   # 메모리 누수 방지용으로 닫아주는 게 좋음
