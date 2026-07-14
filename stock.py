@@ -12,6 +12,7 @@ import matplotlib.font_manager as fm
 import numpy as np
 from scipy.signal import find_peaks
 import matplotlib.gridspec as gridspec
+from datetime import datetime, timedelta
 
 matplotlib.rcParams['axes.unicode_minus'] = False
 
@@ -876,9 +877,11 @@ def showV( item, d, T=60):
 
     return fig
 
-def load_data(code):
-    try:
-        dd = fdr.DataReader(code).tail(200).reset_index()
+def load_data(code, T=60, N =1):
+    try :
+        day = (datetime.now() - timedelta(days=500)).strftime("%Y%m%d") #300
+        dd = fdr.DataReader(code, day).reset_index()
+        # dd = fdr.DataReader(code, '20250101', '20260118').reset_index()
         if 'index' in dd.columns:
             dd = dd.rename(columns={'index': 'Date'})
         if 'Change' in dd.columns:
@@ -891,11 +894,11 @@ def load_data(code):
         dd['MA10_d'] = dd['MA10'].diff()
         dd['S5'] = np.degrees(np.arctan(np.gradient(dd['MA5'].values)))
         dd['S10'] = np.degrees(np.arctan(np.gradient(dd['MA10'].values)))
-
-        dd = dd.tail(45).copy()
-        # 주말 제거: Date를 문자열로 변환 → 카테고리 축으로 사용
+        end_idx = -(N - 1) if N > 1 else None
+        start_idx = -(T + N - 1)
         dd['Date'] = pd.to_datetime(dd['Date']).dt.strftime('%m.%d')
-        return dd
+
+        return dd.iloc[start_idx:end_idx].copy()
     except Exception:
         print("실패")
         return None
