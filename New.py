@@ -573,7 +573,7 @@ def showV( item, d, T=60):
         ax4.axvline(x=d['Date'].iloc[j], color='lightgray', linestyle=':', linewidth=1)
     ax4.tick_params(axis='x', rotation=45)
     for label in ax4.get_xticklabels():
-        label.set_fontsize(6.6)
+        label.set_fontsize(12)
 
 
     # 보조축 설정
