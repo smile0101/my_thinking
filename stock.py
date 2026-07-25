@@ -694,7 +694,9 @@ def showV( item, d, T=60):
     ## 3달(100일) 
     max_100 = d['Close'].max()
     min_100 = d['Close'].min()
-
+    min_100_idx = d['Close'].values.argmin()          
+    min_100_date = dates[min_100_idx]                 
+    
     # ## 1주일
     d5 = d.tail(5)
     CC = d5['Close'].iloc[-1]
@@ -793,7 +795,8 @@ def showV( item, d, T=60):
 
     ax1.text(dates[0], max_100, f' Max {int(max_100):,}', fontsize=12, va='bottom')
     ax1.text(dates[0], min_100, f' Min {int(min_100):,}', fontsize=12, va='top')
-
+    ax1.plot(min_100_date, min_100, marker='d', color='magenta', markersize=20, zorder=6) 
+    
     # 1주일(5일) 상세 표시
     x5_start, x5_end = d5['Date'].iloc[0], d5['Date'].iloc[-1]
     ax1.hlines(y=max_5, xmin=x5_start, xmax=x5_end, colors='red', linestyles='--', linewidth=1.2)
@@ -834,7 +837,7 @@ def showV( item, d, T=60):
     ax2.plot(max_dates_day, maxi_day, "o", color='orange', markersize=5)
     ax2.plot(max_dates_5day, maxi_5day, "o", color='red', markersize=11)
     ax2.plot(min_dates_5day, mini_5day, "o", color='purple', markersize=12)
-    if last_cross_close_20_date: ax2.plot(last_cross_close_20_date,last_cross_close_20_value,"d",color='magenta',markersize=12)
+    if last_cross_close_20_date: ax2.plot(last_cross_close_20_date,last_cross_close_20_value,"d",color='magenta',markersize=20)
     if last_cross_close_60_date: ax2.plot(last_cross_close_60_date,last_cross_close_60_value,"d",color='blue',markersize=12)
     if last_cross_close_120_date: ax2.plot(last_cross_close_120_date,last_cross_close_120_value,"d",color='black',markersize=11)
     for j in range(len(d)):
