@@ -8,13 +8,11 @@ import matplotlib.font_manager as fm
 from io import StringIO
 from bs4 import BeautifulSoup
 from urllib.parse import quote
-from bs4 import BeautifulSoup
 from plotly.subplots import make_subplots
 from scipy.signal import find_peaks
 import FinanceDataReader as fdr
 import matplotlib.gridspec as gridspec
 from datetime import datetime, timedelta
-import matplotlib.font_manager as fm
 
 plt.rcParams['axes.unicode_minus'] = False
 
