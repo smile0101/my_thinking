@@ -219,6 +219,7 @@ with col[2]:
     Lc = (CC - low_3m)/low_3m*100
     Hcc = f'<span style="color:blue;">{Hc:.1F}%</span>'
     Lcc = f'<span style="color:red;">{Lc:.1F}%</span>'
+    Vc = f'<span style="color:orange;">{V:.2f}% </span>'
 
     st.markdown(f"""
         <span style="font-size:16px;font-weight:bold;margin-right:30px;">현재 :{CCT}, &nbsp;&nbsp;&nbsp; H: {high_3m:,} ({Hcc}) /L: {low_3m:,} ({Lcc}) </span>
@@ -226,10 +227,9 @@ with col[2]:
         <span style="font-size:16px;font-weight:bold;margin-right:30px;">매출 : {매출_24}/{매출_25}/{매출_26}</span>
         <span style="font-size:16px;font-weight:bold;">영업이익 : {영익률_24}/{영익률_25}/{영익률_26_Red}</span> """, unsafe_allow_html=True)
 
-
-    st.markdown(f""" <span style="font-size:16px;font-weight:bold;margin-right:10px;">유통 : {유통_Red} / PER : {PER} / ROE : {ROE}&nbsp;&nbsp;&nbsp; 보유율 : {V:.2f}% &nbsp;&nbsp;&nbsp; 거래금 : {amt} (억원)</span>
-    <span style="font-size:18p;"> {vi['지분율']} </span>  """, unsafe_allow_html=True)
-    
+    st.markdown(f""" <span style="font-size:16px;font-weight:bold;margin-right:10px;">유통 : {유통_Red} / PER : {PER} / ROE : {ROE}&nbsp;&nbsp;&nbsp; 
+    보유율 : {Vc} &nbsp;&nbsp;&nbsp; 거래금 : {amt} (억원)</span>
+    <span style="font-size:8p;"> {vi['지분율']} </span>  """, unsafe_allow_html=True)    
 
 ############################        메모          ###########################################
 def get_val(df_, col_name, code):
