@@ -214,10 +214,10 @@ with col[2]:
     영익률_26_Red = f'<span style="color:red;">{영익률_26_val}</span>'
 
     st.markdown(f"""
-        <span style="font-size:20px;font-weight:bold;margin-right:30px;">현재 :{CCT}&nbsp;&nbsp;&nbsp; 순위 : {v['순위']}위 / {시가_int}천억</span>
-        <span style="font-size:20px;font-weight:bold;margin-right:30px;">유통 : {유통_Red} / PER : {PER} / ROE : {ROE}</span>
-        <span style="font-size:20px;font-weight:bold;margin-right:30px;">매출 : {매출_24}/{매출_25}/{매출_26}</span>
-        <span style="font-size:20px;font-weight:bold;">영업이익 : {영익률_24}/{영익률_25}/{영익률_26_Red}</span>
+        <span style="font-size:16px;font-weight:bold;margin-right:30px;">현재 :{CCT}&nbsp;&nbsp;&nbsp; 순위 : {v['순위']}위 / {시가_int}천억</span>
+        <span style="font-size:16px;font-weight:bold;margin-right:30px;">유통 : {유통_Red} / PER : {PER} / ROE : {ROE}</span>
+        <span style="font-size:16px;font-weight:bold;margin-right:30px;">매출 : {매출_24}/{매출_25}/{매출_26}</span>
+        <span style="font-size:16px;font-weight:bold;">영업이익 : {영익률_24}/{영익률_25}/{영익률_26_Red}</span>
     """, unsafe_allow_html=True)
 
     st.markdown(f"""<span style="font-size:22p;"> {vi['지분율']}  </span>&nbsp;&nbsp;&nbsp;
@@ -247,7 +247,7 @@ with row_memo[1]:
     memo_val = st.text_input("", value=Memo, key=f"memo_{code}", label_visibility='collapsed')
 
 # 기준 / History 한 줄 (라벨 + 입력값 x 2)
-row_rh = st.columns([0.5, 2, 0.5, 6.5])
+row_rh = st.columns([0.5, 2, 0.7, 6.1])
 with row_rh[0]:
     st.markdown("<div style='padding-top: 12px;'>📝 기준</div>", unsafe_allow_html=True)
 with row_rh[1]:
