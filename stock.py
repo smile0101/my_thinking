@@ -226,9 +226,9 @@ with col[2]:
     Hcc = f'<span style="color:blue;">{Hc:.1F}%</span>'
     Lcc = f'<span style="color:red;">{Lc:.1F}%</span>'
 
-    st.markdown(f"""  <span style="font-size:17px;font-weight:bold;margin-right:30px;"> H: {high_3m:,} ({Hcc}) /L: {low_3m:,} ({Lcc})   &nbsp;  </span>
-    <span style="font-size:22p;"> {vi['지분율']}  </span>&nbsp;&nbsp;&nbsp;
-     <span style="font-size:17px;font-weight:bold;margin-right:30px;"> 거래금 : {amt} (억원) &nbsp;&nbsp;&nbsp; 보유율 : {V:.2f}%   </span>""", unsafe_allow_html=True)
+    st.markdown(f"""  <span style="font-size:16px;font-weight:bold;margin-right:30px;"> H: {high_3m:,} ({Hcc}) /L: {low_3m:,} ({Lcc})   &nbsp;  </span>
+    <span style="font-size:18p;"> {vi['지분율']}  </span>&nbsp;&nbsp;&nbsp;
+     <span style="font-size:16px;font-weight:bold;margin-right:30px;"> 거래금 : {amt} (억원) &nbsp;&nbsp;&nbsp; 보유율 : {V:.2f}%   </span>""", unsafe_allow_html=True)
 
 ############################        메모          ###########################################
 def get_val(df_, col_name, code):
