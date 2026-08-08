@@ -88,7 +88,6 @@ def on_name_change():
 
 col = st.columns([0.3, 2, 8])
 
-# 기존 코드
 with col[0]:
     st.markdown("<h4 style='font-size: 25px; font-weight: bold;'>📊 </h4>", unsafe_allow_html=True)
 with col[1]:
@@ -236,15 +235,15 @@ def update_field(code, field, value):
 ####  Memo   #####
 row_memo = st.columns([0.8, 8])
 
-# 입력창 내부 글자 크기 변경 CSS 주입
-st.markdown("""  <style> div[data-testid="stTextInput"] input {  font-size: 15px !important; 
+#  글자 크기 변경 
+st.markdown("""  <style> div[data-testid="stTextInput"] input { font-size: 13px !important; 
         height: 45px !important;     /* 글자 크기에 맞춰 입력창 높이도 조정할 경우 사용 */ }  </style> """, unsafe_allow_html=True)
 with row_memo[0]:
     st.markdown("<div style='padding-top: 12px;'>📝 Memo</div>", unsafe_allow_html=True)
 with row_memo[1]:
     memo_val = st.text_input("", value=Memo, key=f"memo_{code}", label_visibility='collapsed')
 
-# 기준 / History 한 줄 (라벨 + 입력값 x 2)
+# 기준 / History 한줄 
 row_rh = st.columns([0.5, 2, 0.7, 6.1])
 with row_rh[0]:
     st.markdown("<div style='padding-top: 12px;'>📝 기준</div>", unsafe_allow_html=True)
