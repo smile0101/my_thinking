@@ -197,7 +197,6 @@ with col[2]:
     except (ValueError, TypeError):
         PER = '-'
 
-
     try:
         시가_int = f"{float(v['시가']):,.0f}"
     except (TypeError, ValueError):
@@ -229,7 +228,7 @@ with col[2]:
 
     st.markdown(f""" <span style="font-size:16px;font-weight:bold;margin-right:10px;">유통 : {유통_Red} / PER : {PER} / ROE : {ROE}&nbsp;&nbsp;&nbsp; 
     보유율 : {Vc} &nbsp;&nbsp;&nbsp; 거래금 : {amt} (억원)</span>
-    <span style="font-size:8p;"> {vi['지분율']} </span>  """, unsafe_allow_html=True)    
+    <span style="font-size:12px;"> {vi['지분율']} </span>  """, unsafe_allow_html=True)    
 
 ############################        메모          ###########################################
 def get_val(df_, col_name, code):
