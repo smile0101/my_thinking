@@ -234,7 +234,7 @@ def update_field(code, field, value):
     get_col("stock").update_one({'코드': code}, {'$set': {field: value}})
  
 # Memo 한 줄 (라벨 + 입력값)
-row_memo = st.columns([0.5, 9])
+row_memo = st.columns([1, 8])
 
 # 입력창 내부 글자 크기 변경 CSS 주입
 st.markdown("""  <style> div[data-testid="stTextInput"] input {  font-size: 18px !important; 
