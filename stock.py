@@ -233,14 +233,12 @@ Memo = get_val(df, 'Memo', code)
 def update_field(code, field, value):
     get_col("stock").update_one({'코드': code}, {'$set': {field: value}})
  
-# Memo 한 줄 (라벨 + 입력값)
-row_memo = st.columns([1, 8])
+####  Memo   #####
+row_memo = st.columns([0.8, 8])
 
 # 입력창 내부 글자 크기 변경 CSS 주입
-st.markdown("""  <style> div[data-testid="stTextInput"] input {  font-size: 18px !important; 
+st.markdown("""  <style> div[data-testid="stTextInput"] input {  font-size: 15px !important; 
         height: 45px !important;     /* 글자 크기에 맞춰 입력창 높이도 조정할 경우 사용 */ }  </style> """, unsafe_allow_html=True)
-
-# 기존 작성하신 코드
 with row_memo[0]:
     st.markdown("<div style='padding-top: 12px;'>📝 Memo</div>", unsafe_allow_html=True)
 with row_memo[1]:
