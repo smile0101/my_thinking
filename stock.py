@@ -216,10 +216,18 @@ with col[2]:
         <span style="font-size:16px;font-weight:bold;margin-right:30px;">현재 :{CCT}&nbsp;&nbsp;&nbsp; 순위 : {v['순위']}위 / {시가_int}천억</span>
         <span style="font-size:16px;font-weight:bold;margin-right:30px;">유통 : {유통_Red} / PER : {PER} / ROE : {ROE}</span>
         <span style="font-size:16px;font-weight:bold;margin-right:30px;">매출 : {매출_24}/{매출_25}/{매출_26}</span>
-        <span style="font-size:16px;font-weight:bold;">영업이익 : {영익률_24}/{영익률_25}/{영익률_26_Red}</span>
-    """, unsafe_allow_html=True)
+        <span style="font-size:16px;font-weight:bold;">영업이익 : {영익률_24}/{영익률_25}/{영익률_26_Red}</span> """, unsafe_allow_html=True)
+    
+    ts = fdr.DataReader(code).tail(60)
+    high_3m = ts['Close'].max()
+    low_3m  = ts['Close'].min()
+    Hc = (high_3m -CC)/CC*100
+    Lc = (CC - low_3m)/low_3m*100
+    Hcc = f'<span style="color:blue;">{Hc:.1F}%</span>'
+    Lcc = f'<span style="color:red;">{Lc:.1F}%</span>'
 
-    st.markdown(f"""<span style="font-size:22p;"> {vi['지분율']}  </span>&nbsp;&nbsp;&nbsp;
+    st.markdown(f"""  <span style="font-size:17px;font-weight:bold;margin-right:30px;"> H: {high_3m:,} ({Hcc}) /L: {low_3m:,} ({Lcc})   &nbsp;&nbsp;  </span>
+    <span style="font-size:22p;"> {vi['지분율']}  </span>&nbsp;&nbsp;&nbsp;
      <span style="font-size:17px;font-weight:bold;margin-right:30px;"> 거래금 : {amt} (억원) &nbsp;&nbsp;&nbsp; 보유율 : {V:.2f}%   </span>""", unsafe_allow_html=True)
 
 ############################        메모          ###########################################
