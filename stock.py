@@ -398,11 +398,11 @@ else:
     <style>
     .etf-table { border-collapse: collapse; width: 100%; font-size: 20px; }
     .etf-table th, .etf-table td { border: 1px solid #ddd; padding: 6px 8px; text-align: center; }
-    .etf-table th { background-color: #f2f2f2; font-size: 16px; }
-    .etf-table td.row-label { text-align: left; font-weight: bold; background-color: #fafafa; font-size: 20px; }
+    .etf-table th { background-color: #f2f2f2; font-size: 18px; }
+    .etf-table td.row-label { text-align: left; font-weight: bold; background-color: #fafafa; font-size: 18px; }
     .etf-table th.sep, .etf-table td.sep { border-left: 2px solid #333; }
     .etf-table td.period { background-color: #f9f9f9; }
-    .etf-table tbody td:not(.row-label) { font-size: 20px; font-weight: bold; }
+    .etf-table tbody td:not(.row-label) { font-size: 16px; font-weight: bold; }
     </style>
     """, unsafe_allow_html=True)
 
