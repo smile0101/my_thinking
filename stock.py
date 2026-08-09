@@ -159,7 +159,7 @@ def _fetch_naver_frgn_page(code):
 dfv = load_data(code)
 dfc = dfv.tail(20).copy()
 dff = _fetch_naver_frgn_page(code)
-dft = dfc[['Date', 'Change']].merge(dff[['dd', '외국인', '기관', '개인', '보유율']],
+dft = dfc[['Date','Close','Change']].merge(dff[['dd', '외국인', '기관', '개인', '보유율']],
     left_on='Date', right_on='dd', how='left').drop(columns='dd')
 cols = ['외국인', '기관', '개인']
 dft[cols] = dft[cols].fillna(0).astype(int)
@@ -293,35 +293,34 @@ with row_link[2]:
         st.rerun()
 
 ############################        Table        ###########################################
-def calc_period(df, rows, label):
-    sub = df.tail(rows)
-    return {
-        'Change': round(sub['Change'].sum(), 1),
+def calc_period(df, start, end, label):
+    sub = df.tail(end) if start == 0 else df.iloc[-end:-start]
+    return { 'Change': round(sub['Change'].sum(), 1),
+        'Close': int(round(sub['Close'].mean(), 0)),
         '외인': int(sub['외국인'].sum()),
         '기관': int(sub['기관'].sum()),
-        '개인': int(sub['개인'].sum()),   # 기관 -> 개인 수정
-    }
+        '개인': int(sub['개인'].sum()),  }
 
 def fmt_cell(val, row):
     if val is None or (isinstance(val, float) and pd.isna(val)):
         return ''
     if row == 'Change':
         return f'{val:+.1f}%'
-    if row in ('외인', '기관', '개인'):   # 튜플 비교 버그 수정
+    if row in ('외인', '기관', '개인', '종가'):
         return f'{int(val):,}'
     return str(val)
 
 # ── 종목별 표 HTML 생성 ─────────────────────────────
-
 def build_table_html(df):
     periods = {}
     n = len(df)
-    if n >= 5:  periods['1W'] = calc_period(df, 5, '1W')
-    if n >= 10: periods['2W'] = calc_period(df, 10, '2W')
-    if n >= 15: periods['3W'] = calc_period(df, 15, '3W')   
-    if n >= 20: periods['1M'] = calc_period(df, 20, '1M')
+    if n >= 5:  periods['1W'] = calc_period(df, 0, 5, '1W')
+    if n >= 10: periods['2W'] = calc_period(df, 5, 10, '2W')
+    if n >= 15: periods['3W'] = calc_period(df, 10, 15, '3W')
+    if n >= 20: periods['1M'] = calc_period(df, 15, 20, '1M')
 
-    rows_label = ['Change', '외인', '기관', '개인']
+    rows_label = ['Change', '종가', '외인', '기관', '개인']
+    count_labels = ['Change', '외인', '기관', '개인']  # 종가는 갯수/강조 대상 제외
     display_10 = df.tail(10)
 
     table = {}
@@ -329,24 +328,31 @@ def build_table_html(df):
         d = row['Date']
         table[d] = {
             'Change': row['Change'],
+            '종가': row['Close'],
             '외인': int(row['외국인']),
             '기관': int(row['기관']),
             '개인': int(row['개인']),
         }
 
     for p in ['1W', '2W', '3W', '1M']:
-        table[p] = periods[p] if p in periods else {k: None for k in rows_label}
+        if p in periods:
+            table[p] = dict(periods[p])
+            table[p]['종가'] = periods[p]['Close']
+        else:
+            table[p] = {k: None for k in rows_label}
 
-    # ── 갯수 열: 일별(date_cols) 데이터 중 양수 개수 ──
     date_cols = list(display_10['Date'])
     count_row = {}
     for rlab in rows_label:
-        cnt = 0
-        for d in date_cols:
-            v = table[d].get(rlab)
-            if v is not None and not (isinstance(v, float) and pd.isna(v)) and v > 0:
-                cnt += 1
-        count_row[rlab] = cnt
+        if rlab in count_labels:
+            cnt = 0
+            for d in date_cols:
+                v = table[d].get(rlab)
+                if v is not None and not (isinstance(v, float) and pd.isna(v)) and v > 0:
+                    cnt += 1
+            count_row[rlab] = cnt
+        else:
+            count_row[rlab] = ''
     table['갯수'] = count_row
 
     col_order = date_cols + ['1W', '2W', '3W', '1M', '갯수']
@@ -364,12 +370,12 @@ def build_table_html(df):
             val = table[col].get(rlab) if table[col] else None
 
             if col == '갯수':
-                text = str(val)
-                bg = 'background-color:#FFCCCC; color:#CC0000;' if val > 5 else ''
+                text = str(val) if val != '' else ''
+                bg = 'background-color:#FFCCCC; color:#CC0000;' if (rlab in count_labels and val != '' and val > 5) else ''
             else:
                 text = fmt_cell(val, rlab)
                 is_num = val is not None and not (isinstance(val, float) and pd.isna(val))
-                bg = 'background-color:#FFCCCC; color:#CC0000;' if (is_num and val > 0) else ''
+                bg = 'background-color:#FFCCCC; color:#CC0000;' if (rlab in count_labels and is_num and val > 0) else ''
 
             cls_list = []
             if col in ('1W', '2W', '3W', '1M'):
@@ -382,7 +388,6 @@ def build_table_html(df):
 
     html += '</tbody></table>'
     return html
-
 
 if dfv is None or dfv.empty:
     st.error("데이터를 불러오지 못했습니다.")
