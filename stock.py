@@ -295,8 +295,8 @@ with row_link[2]:
 ############################        Table        ###########################################
 def calc_period(df, start, end, label):
     sub = df.tail(end) if start == 0 else df.iloc[-end:-start]
-    return { 'Change': round(sub['Change'].sum(), 1),
-        'Close': int(round(sub['Close'].mean(), 0)),
+    return {  'Close': int(round(sub['Close'].mean(), 0)),
+        'Change': round(sub['Change'].sum(), 1),       
         '외인': int(sub['외국인'].sum()),
         '기관': int(sub['기관'].sum()),
         '개인': int(sub['개인'].sum()),  }
@@ -319,16 +319,15 @@ def build_table_html(df):
     if n >= 15: periods['3W'] = calc_period(df, 10, 15, '3W')
     if n >= 20: periods['1M'] = calc_period(df, 15, 20, '1M')
 
-    rows_label = ['Change', '종가', '외인', '기관', '개인']
+    rows_label = ['종가', 'Change', '외인', '기관', '개인']
     count_labels = ['Change', '외인', '기관', '개인']  # 종가는 갯수/강조 대상 제외
     display_10 = df.tail(10)
 
     table = {}
     for _, row in display_10.iterrows():
         d = row['Date']
-        table[d] = {
-            'Change': row['Change'],
-            '종가': row['Close'],
+        table[d] = { '종가': row['Close'],
+            'Change': row['Change'],            
             '외인': int(row['외국인']),
             '기관': int(row['기관']),
             '개인': int(row['개인']),
@@ -399,7 +398,7 @@ else:
     <style>
     .etf-table { border-collapse: collapse; width: 100%; font-size: 20px; }
     .etf-table th, .etf-table td { border: 1px solid #ddd; padding: 6px 8px; text-align: center; }
-    .etf-table th { background-color: #f2f2f2; font-size: 20px; }
+    .etf-table th { background-color: #f2f2f2; font-size: 16px; }
     .etf-table td.row-label { text-align: left; font-weight: bold; background-color: #fafafa; font-size: 20px; }
     .etf-table th.sep, .etf-table td.sep { border-left: 2px solid #333; }
     .etf-table td.period { background-color: #f9f9f9; }
