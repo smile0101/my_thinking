@@ -7,7 +7,7 @@ import FinanceDataReader as fdr
 from pymongo import MongoClient
 
 matplotlib.rcParams['axes.unicode_minus'] = False
-st.set_page_config(page_title="주식", layout="wide")
+st.set_page_config(page_title="Today", layout="wide")
 
 MONGO_URL = st.secrets["mongo_uri"]
 client = MongoClient(MONGO_URL, serverSelectionTimeoutMS=5000, tls=True, tlsInsecure=True)
