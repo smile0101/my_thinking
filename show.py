@@ -69,7 +69,7 @@ def color_rate(row):
     color = "red" if row["RC"] > 0 else ("blue" if row["RC"] < 0 else "black")
     return [f"color: {color}" if col == "승률" else "" for col in row.index]
 
-display_cols = ["종목", "코드", "현재", "등락", "기준", "승률", "Chart"]
+display_cols = ["종목", "현재", "등락", "기준", "승률", "Chart"]
 right_cols = ["기준", "현재"]
 
 def highlight_hc(val):
@@ -105,7 +105,7 @@ styled = (
         overwrite=False
     )
     .hide(axis="index")
-    .hide(axis="columns", subset=["RC", "CH_raw", "메모"])   # 메모 컬럼 숨김
+    .hide(axis="columns", subset=[ "코드", "RC", "CH_raw", "메모"])   # 메모 컬럼 숨김
 )
 
 st.markdown(styled.to_html(escape=False), unsafe_allow_html=True)
