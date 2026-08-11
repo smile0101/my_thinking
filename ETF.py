@@ -156,7 +156,7 @@ def update_field(code, field, value):
     etf_col.update_one({'코드': code}, {'$set': {field: value}})
  
 ####  Memo   #####
-row_memo = st.columns([0.5, 8, 0.5])
+row_memo = st.columns([0.5, 8, 0.6])
 
 #  글자 크기 변경 
 st.markdown("""  <style> div[data-testid="stTextInput"] input { font-size: 15px !important; 
@@ -182,7 +182,7 @@ url_fn    = f"https://wcomp.fnguide.com/?c_id=AA&menu_type=01&cmp_cd={code}"
 url_nv    = f'https://m.stock.naver.com/domestic/stock/{code}/research'
 url_ggl   = f"https://news.google.com/search?q={quote(item)}&hl=ko&gl=KR&ceid=KR:ko"
 
-row_link = st.columns([ 3, 6])
+row_link = st.columns([ 3, 7])
 with row_link[0]:
     st.markdown(
         f'<a href="{url_think}" target="_blank" style="{btn}">Think</a>'
@@ -196,7 +196,7 @@ with row_link[0]:
 with row_link[1]:
     if kk:
         st.markdown(
-            f"<span style='font-size:16px;color:#555;'>구성 : {kk}</span>", unsafe_allow_html=True )
+            f"<span style='font-size:14px;color:#555;'>구성 : {kk}</span>", unsafe_allow_html=True )
 
 st.subheader(f"📌 {item}_{category}")
 
