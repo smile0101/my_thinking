@@ -409,7 +409,7 @@ else:
     # ── 표 렌더링 ─────────────────────────────────────
     st.markdown(table_html, unsafe_allow_html=True)
 
-############################################################################################################
+####################################### 그래프 ##################################################################
 def showV( item, d, T=60):
 
     ## 이동평균선 교차점 계산
@@ -488,7 +488,7 @@ def showV( item, d, T=60):
     ax3 = fig.add_subplot(gs[2], sharex=ax1) # x축 공유
     ax4 = fig.add_subplot(gs[3], sharex=ax1) # x축 공유
 
-    ax1.set_title(f"{item}")
+    ax1.set_title(f"{code}")
 
     ax1.plot(d['Date'], d['Close'], linewidth=1.4, label='Close')
     ax1.plot(d['Date'], d['High'], '--', linewidth=1.0)
