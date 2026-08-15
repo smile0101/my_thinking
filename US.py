@@ -13,7 +13,6 @@ from scipy.signal import find_peaks
 from urllib.parse import quote
 import matplotlib.gridspec as gridspec
 
-
 matplotlib.rcParams['axes.unicode_minus'] = False
 st.set_page_config(page_title="US", layout="wide")
 
@@ -30,7 +29,6 @@ with col[1]:
 
 code = US[US["종목"] == item]["코드"].values[0]
 ##############################   데이터  ######################################
-
 def load_data(code, T=60, N =1):
     try :
         day = (datetime.now() - timedelta(days=300)).strftime("%Y%m%d") #300
@@ -84,7 +82,7 @@ with col[2]:
         <span style="font-size:18px;font-weight:bold;">현재 :{CCT}, &nbsp;&nbsp;&nbsp; H: {high_3m:.1F} ({Hcc}) /L: {low_3m:.1F} ({Lcc}) </span>
         <span style="font-size:18px;font-weight:bold;"> 거래금 : {amt} (달러)</span></span> """, unsafe_allow_html=True)
 
-############################        Btton        ###########################################
+############################        Button        ###########################################
 
 btn = "padding:3px 9px;border:1px solid #bbb;border-radius:4px;text-decoration:none;font-size:15px;margin:2px 20px 2px 0;"
 
@@ -94,13 +92,10 @@ url_ggl   = f"https://news.google.com/search?q={quote(item)}&hl=ko&gl=KR&ceid=KR
 
 with col[3]:
     st.markdown(
-
         f'<a href="{url_tr}"    target="_blank" style="{btn}">Tr</a>'
         f'<a href="{url_nv}"    target="_blank" style="{btn}">Nv</a>'
         f'<a href="{url_ggl}"   target="_blank" style="{btn}">Google</a>',
-        unsafe_allow_html=True
-    )
-
+        unsafe_allow_html=True  )
 
 ############################        메모          ###########################################
 def get_val(df_, col_name, code):
@@ -126,8 +121,6 @@ with row_memo[2]:
         update_field(code, 'Memo', memo_val)
         st.success("저장되었습니다.")
         st.rerun()
-
-
 
 st.subheader(f"📌 {item}_{code}")
 
@@ -163,9 +156,7 @@ def build_table_html(df):
     for _, row in display_10.iterrows():
         d = row['Date']
         table[d] = { '종가': row['Close'],
-            'Change': row['Change'],            
-
-        }
+            'Change': row['Change'],   }
 
     for p in ['1W', '2W', '3W', '1M']:
         if p in periods:
@@ -322,7 +313,7 @@ def showV( item, d, T=60):
     ax3 = fig.add_subplot(gs[2], sharex=ax1) # x축 공유
     ax4 = fig.add_subplot(gs[3], sharex=ax1) # x축 공유
 
-    ax1.set_title(f"{item}")
+    ax1.set_title(f"{code}")
 
     ax1.plot(d['Date'], d['Close'], linewidth=1.4, label='Close')
     ax1.plot(d['Date'], d['High'], '--', linewidth=1.0)
