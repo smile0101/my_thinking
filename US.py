@@ -22,7 +22,7 @@ US_col = client["US"]["us"]
 US = pd.DataFrame(US_col.find({}, {"_id": 0}))
 
 ##################################################################################
-col = st.columns([0.1, 2, 4.5, 2.5])
+col = st.columns([0.1, 2, 5, 2.5])
 
 with col[1]:
     item = st.selectbox("", US["종목"].unique(), label_visibility="collapsed")
