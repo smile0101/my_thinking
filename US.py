@@ -136,7 +136,7 @@ def fmt_cell(val, row):
     if val is None or (isinstance(val, float) and pd.isna(val)):
         return ''
     if row == '종가':
-        return f'{val:+.1f}'
+        return f'{val:.1f}'
     if row == 'Change':
         return f'{val:+.1f}%'
     return str(val)
