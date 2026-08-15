@@ -87,12 +87,14 @@ with col[2]:
 btn = "padding:3px 9px;border:1px solid #bbb;border-radius:4px;text-decoration:none;font-size:15px;margin:2px 20px 2px 0;"
 
 url_tr    = f'https://kr.tradingview.com/chart/Y3Tq45pg/?symbol={code}'
+url_ch    = f'https://m.stock.naver.com/fchart/foreign/stock/{code}'
 url_nv    = f'https://m.stock.naver.com/worldstock/stock/{code}/total'
 url_ggl   = f"https://news.google.com/search?q={quote(item)}&hl=ko&gl=KR&ceid=KR:ko"
 
 with col[3]:
     st.markdown(
         f'<a href="{url_tr}"    target="_blank" style="{btn}">Tr</a>'
+        f'<a href="{url_ch}"    target="_blank" style="{btn}">Chart</a>'
         f'<a href="{url_nv}"    target="_blank" style="{btn}">Nv</a>'
         f'<a href="{url_ggl}"   target="_blank" style="{btn}">Google</a>',
         unsafe_allow_html=True  )
