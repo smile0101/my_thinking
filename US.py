@@ -15,23 +15,20 @@ import matplotlib.gridspec as gridspec
 
 
 matplotlib.rcParams['axes.unicode_minus'] = False
-
 st.set_page_config(page_title="US", layout="wide")
 
-MONGO_URL = "mongodb+srv://foryou3651_db_user:tEtiTj5rqGb4uxUz@yu.lxgkks1.mongodb.net/?appName=YU"
-# MONGO_URL = st.secrets["mongo_uri"]
+MONGO_URL = st.secrets["mongo_uri"]
 client = MongoClient(MONGO_URL, serverSelectionTimeoutMS=5000, tls=True, tlsInsecure=True)
 US_col = client["US"]["us"]          
 US = pd.DataFrame(US_col.find({}, {"_id": 0}))
 
 ##################################################################################
-col = st.columns([0.1, 2, 4, 3])
+col = st.columns([0.1, 2, 4.5, 2.5])
 
 with col[1]:
     item = st.selectbox("", US["종목"].unique(), label_visibility="collapsed")
 
 code = US[US["종목"] == item]["코드"].values[0]
-
 ##############################   데이터  ######################################
 
 def load_data(code, T=60, N =1):
@@ -115,7 +112,7 @@ def update_field(code, field, value):
     US_col.update_one({'코드': code}, {'$set': {field: value}})
  
 ####  Memo   #####
-row_memo = st.columns([0.5, 8, 0.5])
+row_memo = st.columns([0.5, 8, 0.7])
 
 #  글자 크기 변경 
 st.markdown("""  <style> div[data-testid="stTextInput"] input { font-size: 15px !important; 
