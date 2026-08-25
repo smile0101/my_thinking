@@ -13,13 +13,12 @@ MONGO_URL = st.secrets["mongo_uri"]
 client = MongoClient(MONGO_URL, serverSelectionTimeoutMS=5000, tls=True, tlsInsecure=True)
 col = client["Target"]["target"]
 dbs = pd.DataFrame(col.find({}, {"_id": 0}))
+
 MM = client["stock"]["stock"]
 memo_docs = list(MM.find({}, {"_id": 0, "코드": 1, "Memo": 1}))
-memo_map = {str(d["코드"]): d.get("Memo", "") for d in memo_docs}
-
+memo_map = {str(d["코드"]): d.get("Memo", "") for d in memo_docs if "코드" in d}
 
 col_widths = [1.8, 1.2, 2.5, 1.2, 1.0, 0.8]
-
 def format_change_span(val):
     if val > 0:
         return f'<span style="color:#d63031; font-weight:bold;">▲{val:.1f}%</span>'
@@ -49,6 +48,9 @@ for _, row in dbs.iterrows():
     # 조건에 해당하지 않을 때 숫자형 변환 및 차트 URL 구성
     ref_val = float(ref)
     link = f"https://m.stock.naver.com/fchart/domestic/stock/{code}"
+    memo_val = memo_map.get(code, "")
+    if memo_val:
+        memo_list.append({"종목": item, "메모": memo_val})
 
     try:
         df = fdr.DataReader(code).tail(5).reset_index()
@@ -81,8 +83,7 @@ for _, row in dbs.iterrows():
     except Exception as e:
         st.error(f"{item}({code}) 데이터를 불러오는 중 오류 발생: {e}")
 
-memo_rows = result_df[result_df["메모"].notna() & (result_df["메모"].astype(str).str.strip() != "")]
-if not memo_rows.empty:
+if memo_list:
     st.markdown("---")
-    for _, r in memo_rows.iterrows():
+    for r in memo_list:
         st.markdown(f"**{r['종목']}** : {r['메모']}")
