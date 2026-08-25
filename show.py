@@ -26,7 +26,7 @@ def format_change_span(val):
         return f'<span style="color:#0984e3; font-weight:bold;">▼{abs(val):.1f}%</span>'
     else:
         return f'<span>0.0%</span>'
-
+memo_list = []
 for _, row in dbs.iterrows():
     item = row["종목"]
     code = str(row["코드"]) if pd.notna(row["코드"]) else "000nan"
