@@ -18,7 +18,9 @@ MM = client["stock"]["stock"]
 memo_docs = list(MM.find({}, {"_id": 0, "코드": 1, "Memo": 1}))
 memo_map = {str(d["코드"]): d.get("Memo", "") for d in memo_docs if "코드" in d}
 
+
 col_widths = [1.8, 1.2, 2.5, 1.2, 1.0, 0.8]
+
 def format_change_span(val):
     if val > 0:
         return f'<span style="color:#d63031; font-weight:bold;">▲{val:.1f}%</span>'
@@ -31,6 +33,9 @@ for _, row in dbs.iterrows():
     item = row["종목"]
     code = str(row["코드"]) if pd.notna(row["코드"]) else "000nan"
     ref = str(row["기준"]) if pd.notna(row["기준"]) else "0"
+    memo_val = memo_map.get(code, "")
+    if memo_val:
+        memo_list.append({"종목": item, "메모": memo_val})
 
     # 코드가 "000nan"이거나 기준이 "0"인 경우 큰 글씨 타이틀로 출력
     if code == "000nan" or ref == "0":
@@ -48,18 +53,19 @@ for _, row in dbs.iterrows():
     # 조건에 해당하지 않을 때 숫자형 변환 및 차트 URL 구성
     ref_val = float(ref)
     link = f"https://m.stock.naver.com/fchart/domestic/stock/{code}"
-    memo_val = memo_map.get(code, "")
-    if memo_val:
-        memo_list.append({"종목": item, "메모": memo_val})
 
     try:
-        df = fdr.DataReader(code).tail(5).reset_index()
+        df = fdr.DataReader(code).tail(10).reset_index()
+
+        if 'Change' not in df.columns:
+            df['Change'] = df['Close'].pct_change()
 
         if len(df) >= 4:
             CC = df["Close"].iloc[-1]
             CH1 = df["Change"].iloc[-1] * 100
             CH2 = df["Change"].iloc[-2] * 100
             CH3 = df["Change"].iloc[-3] * 100
+            CH4 = df["Change"].iloc[-4] * 100
             RC = round((CC - ref_val) / ref_val * 100, 1)
 
             row_cols = st.columns(col_widths)
@@ -67,7 +73,7 @@ for _, row in dbs.iterrows():
             row_cols[0].markdown( f'<div style="font-size: 18px;' f' font-weight: bold;">{item}</div>',unsafe_allow_html=True,)
             row_cols[1].markdown( f'<div style="font-size: 18px; text-align:'f' right;">{CC:,.0f}원</div>', unsafe_allow_html=True, )
 
-            ch_combined = f"{format_change_span(CH3)} / {format_change_span(CH2)} / {format_change_span(CH1)}"
+            ch_combined = f"{format_change_span(CH4)} /{format_change_span(CH3)} / {format_change_span(CH2)} / {format_change_span(CH1)}"
             row_cols[2].markdown( f'<div style="font-size: 18px;">{ch_combined}</div>', unsafe_allow_html=True, )
 
             row_cols[3].markdown( f'<div style="font-size: 18px; text-align:'f' right;">{ref_val:,.0f}원</div>', unsafe_allow_html=True,)
@@ -87,3 +93,4 @@ if memo_list:
     st.markdown("---")
     for r in memo_list:
         st.markdown(f"**{r['종목']}** : {r['메모']}")
+
