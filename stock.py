@@ -1,4 +1,3 @@
-
 import os
 import pandas as pd
 from pymongo import MongoClient
@@ -96,6 +95,7 @@ with col[1]:
 if 'selected_code' not in st.session_state:
     on_name_change()
 
+
 ## 데이터 ##
 #########################################################################################################
 code = st.session_state['selected_code']  ## code
@@ -174,7 +174,14 @@ try:
     V = float(V)
 except (TypeError, ValueError):
     V = float(str(V).replace('%', ''))
+
 CC = dfv['Close'].iloc[-1]
+YY = dfv["Close"].iloc[-2]
+D5 = dfv["MA5"].iloc[-1]
+D20 = dfv["MA20"].iloc[-1]
+CD5 = int(CC-D5)
+D520 = int(D5-D20)
+CY = int(CC-YY)
 
 ############################        Info          ###########################################
 with col[2]:
@@ -264,6 +271,14 @@ with row_rh[3]:
 
 ############################        Btton        ###########################################
 
+def format2(val):
+    if val > 0:
+        return f'<span style="color:#d63031; font-weight:bold;">▲{val:,}</span>'
+    elif val < 0:
+        return f'<span style="color:#0984e3; font-weight:bold;">▼{abs(val):,}</span>'
+    else:
+        return f'<span>0</span>'
+
 btn = "padding:3px 9px;border:1px solid #bbb;border-radius:4px;text-decoration:none;font-size:15px;margin:2px 20px 2px 0;"
 
 url_think = f'https://www.thinkpool.com/item/{code}'
@@ -273,7 +288,7 @@ url_fn    = f"https://wcomp.fnguide.com/?c_id=AA&menu_type=01&cmp_cd={code}"
 url_nv    = f'https://m.stock.naver.com/domestic/stock/{code}/research'
 url_ggl   = f"https://news.google.com/search?q={quote(item)}&hl=ko&gl=KR&ceid=KR:ko"
 
-row_link = st.columns([0.5, 9, 1])
+row_link = st.columns([0.5, 6, 3, 1])
 with row_link[1]:
     st.markdown(
         f'<a href="{url_think}" target="_blank" style="{btn}">Think</a>'
@@ -285,12 +300,27 @@ with row_link[1]:
         unsafe_allow_html=True
     )
 with row_link[2]:
+    ch_combined = f"{format2(CD5)} / {format2(D520)} &emsp;&emsp;({format2(CY)})"
+    st.markdown( f'<div style="font-size: 18px;">{ch_combined}</div>', unsafe_allow_html=True, )
+
+
+
+with row_link[3]:
     if st.button("💾 저장", key=f"btn_save_{code}"):
         update_field(code, '기준', ref_val)
         update_field(code, 'History', history_val)
         update_field(code, 'Memo', memo_val)
         st.success("저장되었습니다.")
         st.rerun()
+################################### 투자자/ 매몰도  ########################################################
+
+cols1 = st.columns(3)
+cols1[0].image(f'https://webchart.thinkpool.com/2021ReNew/CumulationSelling/A{code}.png',
+               use_container_width=True, caption="투자자")
+cols1[1].image(f'https://ssl.pstatic.net/imgfinance/chart/item/area/week/{code}.png',
+               use_container_width=True, caption="5일 주가")
+cols1[2].image(f'https://webchart.thinkpool.com/2021ReNew/stock1day_volume/A{code}.png',
+               use_container_width=True, caption="매몰도")
 
 ############################        Table        ###########################################
 def calc_period(df, start, end, label):
@@ -671,15 +701,7 @@ else:
     st.pyplot(fig)
     plt.close(fig)  # 메모리 누수 방지 (matplotlib figure는 명시적으로 닫아줘야 함)
 
-###########################################################################################
 
-cols1 = st.columns(3)
-cols1[0].image(f'https://webchart.thinkpool.com/2021ReNew/CumulationSelling/A{code}.png',
-               use_container_width=True, caption="투자자")
-cols1[1].image(f'https://ssl.pstatic.net/imgfinance/chart/item/area/week/{code}.png',
-               use_container_width=True, caption="5일 주가")
-cols1[2].image(f'https://webchart.thinkpool.com/2021ReNew/stock1day_volume/A{code}.png',
-               use_container_width=True, caption="매몰도")
 #############################################################################################
 
 def plot_stock_st(df, stock_name):
@@ -735,3 +757,4 @@ else:
     merged = plot_df.sort_values('날짜').reset_index(drop=True)
 
 plot_stock_st(merged, item)
+
