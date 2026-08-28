@@ -18,8 +18,8 @@ MM = client["stock"]["stock"]
 memo_docs = list(MM.find({}, {"_id": 0, "코드": 1, "Memo": 1}))
 memo_map = {str(d["코드"]): d.get("Memo", "") for d in memo_docs if "코드" in d}
 
-
-col_widths = [1.8, 1.2, 2.5, 1.2, 1.0, 0.8]
+###############################################################################################
+col_widths = [1.5, 1.2, 3, 1.2, 1.0, 0.8]
 
 def format_change_span(val):
     if val > 0:
@@ -28,6 +28,15 @@ def format_change_span(val):
         return f'<span style="color:#0984e3; font-weight:bold;">▼{abs(val):.1f}%</span>'
     else:
         return f'<span>0.0%</span>'
+
+def format2(val):
+    if val > 0:
+        return f'<span style="color:#d63031; font-weight:bold;">{val:,}</span>'
+    elif val < 0:
+        return f'<span style="color:#0984e3; font-weight:bold;">-{abs(val):,}</span>'
+    else:
+        return f'<span>0</span>'
+
 memo_list = []
 for _, row in dbs.iterrows():
     item = row["종목"]
@@ -55,25 +64,33 @@ for _, row in dbs.iterrows():
     link = f"https://m.stock.naver.com/fchart/domestic/stock/{code}"
 
     try:
-        df = fdr.DataReader(code).tail(10).reset_index()
+        df = fdr.DataReader(code).tail(23).reset_index()
+        df['MA5'] = df['Close'].rolling(window=5).mean()
+        df['MA20'] = df['Close'].rolling(window=20).mean()
+        D5 = df["MA5"].iloc[-1]
+        D20 = df["MA20"].iloc[-1]
 
         if 'Change' not in df.columns:
             df['Change'] = df['Close'].pct_change()
 
         if len(df) >= 4:
             CC = df["Close"].iloc[-1]
+            YY = df["Close"].iloc[-2]
             CH1 = df["Change"].iloc[-1] * 100
             CH2 = df["Change"].iloc[-2] * 100
             CH3 = df["Change"].iloc[-3] * 100
-            CH4 = df["Change"].iloc[-4] * 100
+            
             RC = round((CC - ref_val) / ref_val * 100, 1)
+            CD5 = int(CC-D5)
+            D520 = int(D5-D20)
+            CY = int(CC-YY)
 
             row_cols = st.columns(col_widths)
 
             row_cols[0].markdown( f'<div style="font-size: 18px;' f' font-weight: bold;">{item}</div>',unsafe_allow_html=True,)
             row_cols[1].markdown( f'<div style="font-size: 18px; text-align:'f' right;">{CC:,.0f}원</div>', unsafe_allow_html=True, )
 
-            ch_combined = f"{format_change_span(CH4)} /{format_change_span(CH3)} / {format_change_span(CH2)} / {format_change_span(CH1)}"
+            ch_combined = f"{format_change_span(CH3)} / {format_change_span(CH2)} / {format_change_span(CH1)}, &emsp;&emsp;&emsp;{format2(CD5)}({format2(CY)}) /{format2(D520)} "
             row_cols[2].markdown( f'<div style="font-size: 18px;">{ch_combined}</div>', unsafe_allow_html=True, )
 
             row_cols[3].markdown( f'<div style="font-size: 18px; text-align:'f' right;">{ref_val:,.0f}원</div>', unsafe_allow_html=True,)
