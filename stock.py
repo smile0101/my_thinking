@@ -182,6 +182,7 @@ D20 = dfv["MA20"].iloc[-1]
 CD5 = int(CC-D5)
 D520 = int(D5-D20)
 CY = int(CC-YY)
+TRR = (CC-YY)/YY*100
 
 ############################        Info          ###########################################
 with col[2]:
@@ -270,6 +271,13 @@ with row_rh[3]:
     history_val = st.text_input("", value=History, key=f"history_{code}", label_visibility='collapsed')
 
 ############################        Btton        ###########################################
+def format1(val):
+    if val > 0:
+        return f'<span style="color:#d63031; font-weight:bold;">▲{val:.1f}%</span>'
+    elif val < 0:
+        return f'<span style="color:#0984e3; font-weight:bold;">▼{abs(val):.1f}%</span>'
+    else:
+        return f'<span>0.0%</span>'
 
 def format2(val):
     if val > 0:
@@ -288,7 +296,7 @@ url_fn    = f"https://wcomp.fnguide.com/?c_id=AA&menu_type=01&cmp_cd={code}"
 url_nv    = f'https://m.stock.naver.com/domestic/stock/{code}/research'
 url_ggl   = f"https://news.google.com/search?q={quote(item)}&hl=ko&gl=KR&ceid=KR:ko"
 
-row_link = st.columns([0.5, 6, 3, 1])
+row_link = st.columns([0.5, 6.5, 3, 1])
 with row_link[1]:
     st.markdown(
         f'<a href="{url_think}" target="_blank" style="{btn}">Think</a>'
@@ -300,10 +308,8 @@ with row_link[1]:
         unsafe_allow_html=True
     )
 with row_link[2]:
-    ch_combined = f"{format2(CD5)} / {format2(D520)} &emsp;&emsp;({format2(CY)})"
+    ch_combined = f"{format2(CD5)} / {format2(D520)} &emsp;&emsp;{format2(CY)} / {format1(TRR)} "
     st.markdown( f'<div style="font-size: 18px;">{ch_combined}</div>', unsafe_allow_html=True, )
-
-
 
 with row_link[3]:
     if st.button("💾 저장", key=f"btn_save_{code}"):
