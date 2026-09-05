@@ -5,8 +5,6 @@ matplotlib.use("Agg")  # 화면 없이 이미지로만 렌더링 (Streamlit 의�
 import streamlit as st
 import pandas as pd
 from pymongo import MongoClient
-import requests
-from io import StringIO
 from datetime import datetime, timedelta
 import os, numpy as np, FinanceDataReader as fdr
 from scipy.signal import find_peaks
@@ -16,19 +14,19 @@ import matplotlib.gridspec as gridspec
 
 matplotlib.rcParams['axes.unicode_minus'] = False
 
-st.set_page_config(page_title="ETF", layout="wide")
-
+st.set_page_config(page_title="US", layout="wide")
 MONGO_URL = st.secrets["mongo_uri"]
 client = MongoClient(MONGO_URL, serverSelectionTimeoutMS=5000, tls=True, tlsInsecure=True)
-etf_col = client["ETF"]["etf"]          
-ETF = pd.DataFrame(etf_col.find({}, {"_id": 0}))
+US_col = client["US"]["us"]          
+US = pd.DataFrame(US_col.find({}, {"_id": 0}))
 
 ##################################################################################
-col = st.columns([0.1, 2, 6.5, 0.5])
+col = st.columns([0.1, 2, 4, 3])
 
 with col[1]:
-    item = st.selectbox("", ETF["종목"].unique(), label_visibility="collapsed")
-code = ETF[ETF["종목"] == item]["코드"].values[0]
+    item = st.selectbox("", US["종목"].unique(), label_visibility="collapsed")
+
+code = US[US["종목"] == item]["코드"].values[0]
 
 ##############################   데이터  ######################################
 
@@ -60,98 +58,58 @@ def load_data(code, T=60, N =1):
         print("실패")
         return None
 
-def _fetch_naver_frgn_page(code):
-    headers = {"User-Agent": "Mozilla/5.0"}
-    url = f'https://finance.naver.com/item/frgn.naver?code={code}'
-    res = requests.get(url, headers=headers)
-
-    try:
-        fk = pd.read_html(StringIO(res.text))[2]
-        fk = fk.dropna()
-        fk.columns = ['날짜','종가','전일비','등락률','거래량','기관','외국인','보유량','보유율']
-    except:
-        fk = pd.read_html(StringIO(res.text))[3]
-        fk = fk.dropna()
-        fk.columns = ['날짜','종가','전일비','등락률','거래량','기관','외국인','보유량','보유율']
-
-    fk['개인'] = -(fk['외국인'] + fk['기관'])
-  
-    if fk['보유율'].dtype == 'O':
-        fk['보유율'] = fk['보유율'].str.replace('%','').astype(float)
-
-    fk['dd'] = pd.to_datetime(fk['날짜']).dt.strftime('%m.%d')
-    for col in ['외국인', '기관', '개인']:
-        fk[col] = (fk[col] / 1000).round(0).fillna(0).astype(int)
-
-    fk = fk[['날짜','dd', '종가', '외국인', '기관', '개인', '보유율']]
-
-    return fk
-
 dfv = load_data(code)
-dfc = dfv.tail(20).copy()
-dff = _fetch_naver_frgn_page(code)
-dft = dfc[['Date','Close','Change']].merge(dff[['dd', '외국인', '기관', '개인', '보유율']],
-    left_on='Date', right_on='dd', how='left').drop(columns='dd')
-cols = ['외국인', '기관', '개인']
-dft[cols] = dft[cols].fillna(0).astype(int)
-dft['보유율'] = dft['보유율'].ffill()
-dfc['거래금'] = dfc['Close'] * dfc['Volume']
 
-amt_그제, amt_어제, amt_오늘 = dfc['거래금'].tail(3) / 100000000  # 억원 단위
+dfc = dfv.tail(3).copy()
+dfc['거래금'] = dfc['Close'] * dfc['Volume'] / 1000000
+amt_그제, amt_어제, amt_오늘 = dfc['거래금']
 amt = f"{amt_그제:,.0f} / {amt_어제:,.0f} / {amt_오늘:,.0f}"
 
-V = dft['보유율'].iloc[-1]
-try:
-    V = float(V)
-except (TypeError, ValueError):
-    V = float(str(V).replace('%', ''))
-
 CC = dfv['Close'].iloc[-1]
-CCT = f'<span style="color:blue;">{CC:,}</span>'
+CCT = f'<span style="color:blue;">{CC:.2f}</span>'
 
-ts = fdr.DataReader(code).tail(60)
+ts = dfv.tail(60)
 high_3m = ts['Close'].max()
 low_3m  = ts['Close'].min()
 Hc = (high_3m -CC)/CC*100
 Lc = (CC - low_3m)/low_3m*100
 Hcc = f'<span style="color:blue;">{Hc:.1F}%</span>'
 Lcc = f'<span style="color:red;">{Lc:.1F}%</span>'
-Vc = f'<span style="color:orange;">{V:.2f}% </span>'
 
-##  =============================================================== ##
-tot = ""
-url_main = f"https://finance.naver.com/item/main.naver?code={code}"
-res_main = requests.get(url_main, headers={"User-Agent": "Mozilla/5.0"})
-report = pd.read_html(StringIO(res_main.text))
-
-tot = report[5].iloc[0, 1]
-comp = report[3][["구성종목(구성자산)", "구성비중"]].copy()
-comp = comp.dropna(subset=["구성종목(구성자산)"])
-comp["구성비중"] = comp["구성비중"].fillna("").astype(str)
-comp = comp.head(5).reset_index(drop=True)
-
-kk = ", ".join(
-    f"{row['구성종목(구성자산)']}({row['구성비중']})"
-    for _, row in comp.iterrows())
 
 ########################################################################################
 with col[2]:
     st.markdown(f"""
-        <span style="font-size:18px;font-weight:bold;">현재 :{CCT}, &nbsp;&nbsp;&nbsp; H: {high_3m:,} ({Hcc}) /L: {low_3m:,} ({Lcc}) </span>
-        <span style="font-size:18px;font-weight:bold;">  {tot} &nbsp;&nbsp;&nbsp; 
-        보유율 : {Vc} &nbsp;&nbsp;&nbsp; 거래금 : {amt} (억원)</span></span> """, unsafe_allow_html=True)
+        <span style="font-size:18px;font-weight:bold;">현재 :{CCT}, &nbsp;&nbsp;&nbsp; H: {high_3m:.1F} ({Hcc}) /L: {low_3m:.1F} ({Lcc}) </span>
+        <span style="font-size:18px;font-weight:bold;"> 거래금 : {amt} (달러)</span></span> """, unsafe_allow_html=True)
+
+############################        Btton        ###########################################
+
+btn = "padding:3px 9px;border:1px solid #bbb;border-radius:4px;text-decoration:none;font-size:15px;margin:2px 20px 2px 0;"
+
+url_tr    = f'https://kr.tradingview.com/chart/Y3Tq45pg/?symbol={code}'
+url_nv    = f'https://m.stock.naver.com/worldstock/stock/{code}/total'
+url_ggl   = f"https://news.google.com/search?q={quote(item)}&hl=ko&gl=KR&ceid=KR:ko"
+
+with col[3]:
+    st.markdown(
+
+        f'<a href="{url_tr}"    target="_blank" style="{btn}">Tr</a>'
+        f'<a href="{url_nv}"    target="_blank" style="{btn}">Nv</a>'
+        f'<a href="{url_ggl}"   target="_blank" style="{btn}">Google</a>',
+        unsafe_allow_html=True  )
 
 ############################        메모          ###########################################
 def get_val(df_, col_name, code):
     return df_.loc[df_['코드'] == code, col_name].iloc[0]
 
-Memo = get_val(ETF, 'Memo', code)
+Memo = get_val(US, 'Memo', code)
  
 def update_field(code, field, value):
-    etf_col.update_one({'코드': code}, {'$set': {field: value}})
+    US_col.update_one({'코드': code}, {'$set': {field: value}})
  
 ####  Memo   #####
-row_memo = st.columns([0.5, 8, 0.6])
+row_memo = st.columns([0.5, 8, 0.5])
 
 #  글자 크기 변경 
 st.markdown("""  <style> div[data-testid="stTextInput"] input { font-size: 15px !important; 
@@ -166,60 +124,23 @@ with row_memo[2]:
         st.success("저장되었습니다.")
         st.rerun()
 
-############################        Btton        ###########################################
 
-btn = "padding:3px 9px;border:1px solid #bbb;border-radius:4px;text-decoration:none;font-size:15px;margin:2px 20px 2px 0;"
-
-url_think = f'https://www.thinkpool.com/item/{code}'
-url_min   = f'https://m.stock.naver.com/fchart/domestic/stock/{code}'
-url_tr    = f'https://kr.tradingview.com/chart/Y3Tq45pg/?symbol=KRX%3A{code}'
-url_fn    = f"https://wcomp.fnguide.com/?c_id=AA&menu_type=01&cmp_cd={code}"
-url_nv    = f'https://m.stock.naver.com/domestic/stock/{code}/research'
-url_ggl   = f"https://news.google.com/search?q={quote(item)}&hl=ko&gl=KR&ceid=KR:ko"
-
-row_link = st.columns([ 3, 7])
-with row_link[0]:
-    st.markdown(
-        f'<a href="{url_think}" target="_blank" style="{btn}">Think</a>'
-        f'<a href="{url_min}"   target="_blank" style="{btn}">chart</a>'
-        f'<a href="{url_tr}"    target="_blank" style="{btn}">Tr</a>'
-        f'<a href="{url_fn}"    target="_blank" style="{btn}">Fn</a>'
-        f'<a href="{url_nv}"    target="_blank" style="{btn}">Nv</a>'
-        f'<a href="{url_ggl}"   target="_blank" style="{btn}">Google</a>',
-        unsafe_allow_html=True
-    )
-with row_link[1]:
-    if kk:
-        st.markdown(
-            f"<span style='font-size:14px;color:#555;'>구성 : {kk}</span>", unsafe_allow_html=True )
 
 st.subheader(f"📌 {item}_{code}")
-
-#############################        image       ###########################################
-cols1 = st.columns(3)
-cols1[0].image(f'https://webchart.thinkpool.com/2021ReNew/CumulationSelling/A{code}.png',
-               use_container_width=True, caption="투자자")
-cols1[1].image(f'https://ssl.pstatic.net/imgfinance/chart/item/area/week/{code}.png',
-               use_container_width=True, caption="5일 주가")
-cols1[2].image(f'https://webchart.thinkpool.com/2021ReNew/stock1day_volume/A{code}.png',
-               use_container_width=True, caption="매몰도")
 
 #############################        Table        ###########################################
 def calc_period(df, start, end, label):
     sub = df.tail(end) if start == 0 else df.iloc[-end:-start]
     return { 'Close': int(round(sub['Close'].mean(), 0)),
-        'Change': round(sub['Change'].sum(), 1),       
-        '외인': int(sub['외국인'].sum()),
-        '기관': int(sub['기관'].sum()),
-        '개인': int(sub['개인'].sum()),  }
+        'Change': round(sub['Change'].sum(), 1), }
 
 def fmt_cell(val, row):
     if val is None or (isinstance(val, float) and pd.isna(val)):
         return ''
+    if row == '종가':
+        return f'{val:+.1f}'
     if row == 'Change':
         return f'{val:+.1f}%'
-    if row in ('외인', '기관', '개인', '종가'):
-        return f'{int(val):,}'
     return str(val)
 
 # ── 종목별 표 HTML 생성 ─────────────────────────────
@@ -231,8 +152,8 @@ def build_table_html(df):
     if n >= 15: periods['3W'] = calc_period(df, 10, 15, '3W')
     if n >= 20: periods['1M'] = calc_period(df, 15, 20, '1M')
 
-    rows_label = ['종가', 'Change', '외인', '기관', '개인']
-    count_labels = ['Change', '외인', '기관', '개인']  # 종가는 갯수/강조 대상 제외
+    rows_label = ['종가', 'Change']
+    count_labels = ['Change']  # 종가 제오    
     display_10 = df.tail(10)
 
     table = {}
@@ -240,9 +161,7 @@ def build_table_html(df):
         d = row['Date']
         table[d] = { '종가': row['Close'],
             'Change': row['Change'],            
-            '외인': int(row['외국인']),
-            '기관': int(row['기관']),
-            '개인': int(row['개인']),
+
         }
 
     for p in ['1W', '2W', '3W', '1M']:
@@ -303,7 +222,7 @@ def build_table_html(df):
 if dfv is None or dfv.empty:
     st.error("데이터를 불러오지 못했습니다.")
 else:
-    table_html = build_table_html( dft)
+    table_html = build_table_html(dfv)
 
     # ── 표 스타일 (한 번만 정의) ─────────────────────────
     st.markdown("""
@@ -582,3 +501,4 @@ else:
     # ── 그래프 렌더링 ──────────────────────────────────
     st.pyplot(fig)
     plt.close(fig)  # 메모리 누수 방지 (matplotlib figure는 명시적으로 닫아줘야 함)
+
