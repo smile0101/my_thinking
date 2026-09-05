@@ -24,16 +24,11 @@ etf_col = client["ETF"]["etf"]
 ETF = pd.DataFrame(etf_col.find({}, {"_id": 0}))
 
 ##################################################################################
-col = st.columns([0.1, 2, 2, 6])
+col = st.columns([0.1, 2, 6.5, 0.5])
 
 with col[1]:
-    category = st.selectbox("", ETF["구분"].unique(), label_visibility="collapsed")
-
-filtered_df = ETF[ETF["구분"] == category]
-with col[2]:
-    item = st.selectbox("", filtered_df["종목"], label_visibility="collapsed")
-
-code = filtered_df[filtered_df["종목"] == item]["코드"].values[0]
+    item = st.selectbox("", ETF["종목"].unique(), label_visibility="collapsed")
+code = ETF[ETF["종목"] == item]["코드"].values[0]
 
 ##############################   데이터  ######################################
 
@@ -140,7 +135,7 @@ kk = ", ".join(
     for _, row in comp.iterrows())
 
 ########################################################################################
-with col[3]:
+with col[2]:
     st.markdown(f"""
         <span style="font-size:18px;font-weight:bold;">현재 :{CCT}, &nbsp;&nbsp;&nbsp; H: {high_3m:,} ({Hcc}) /L: {low_3m:,} ({Lcc}) </span>
         <span style="font-size:18px;font-weight:bold;">  {tot} &nbsp;&nbsp;&nbsp; 
@@ -198,7 +193,7 @@ with row_link[1]:
         st.markdown(
             f"<span style='font-size:14px;color:#555;'>구성 : {kk}</span>", unsafe_allow_html=True )
 
-st.subheader(f"📌 {item}_{category}")
+st.subheader(f"📌 {item}_{code}")
 
 #############################        image       ###########################################
 cols1 = st.columns(3)
@@ -587,4 +582,3 @@ else:
     # ── 그래프 렌더링 ──────────────────────────────────
     st.pyplot(fig)
     plt.close(fig)  # 메모리 누수 방지 (matplotlib figure는 명시적으로 닫아줘야 함)
-
