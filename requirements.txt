@@ -1,3 +1,16 @@
 streamlit
 pandas
+finance-datareader
+selenium
+webdriver-manager
 numpy
+scipy
+matplotlib
+openpyxl
+lxml
+html5lib
+pymongo[srv]==4.6.3
+dnspython
+certifi
+koreanize-matplotlib
+setuptools
