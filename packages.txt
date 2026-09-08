@@ -1,4 +1,1 @@
---allow-insecure-repositories
-chromium
-chromium-driver
-fonts-nanum
+
