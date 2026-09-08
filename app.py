@@ -8,6 +8,45 @@ from matplotlib import font_manager, rc
 import matplotlib.font_manager as fm
 import os
 
+import os
+import subprocess
+
+
+def install_system_dependencies():
+    # 보안 인증 검사 우회 옵션을 포함하여 apt-get 업데이트 및 설치
+    try:
+        subprocess.run(
+            [
+                "sudo",
+                "apt-get",
+                "update",
+                "-o",
+                "Acquire::Check-Valid-Until=false",
+            ],
+            check=False,
+        )
+        subprocess.run(
+            [
+                "sudo",
+                "apt-get",
+                "install",
+                "-y",
+                "chromium",
+                "chromium-driver",
+                "fonts-nanum",
+            ],
+            check=True,
+        )
+    except Exception as e:
+        print(f"APT install failed: {e}")
+
+
+# 앱 실행 시작 시 1회 수행
+install_system_dependencies()
+
+
+
+
 # 페이지 설정
 st.set_page_config(page_icon="♥", page_title="지수", layout="wide")
 st.subheader("📊 지수") 
