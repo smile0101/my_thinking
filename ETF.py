@@ -140,7 +140,7 @@ tot = ""
 url_main = f"https://stock.naver.com/api/domestic/detail/{code}/ETFComponent"
 headers = { "User-Agent": "Mozilla/5.0", "Referer": f"https://stock.naver.com/domestic/stock/{code}/info/summary" }
 
-params = { startIdx": 0, "pageSize": 20 }
+params = { "startIdx": 0, "pageSize": 20 }
 
 res_main = requests.get(url_main, headers=headers, params=params, timeout=10)
 res_main.raise_for_status()
