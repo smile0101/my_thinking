@@ -136,19 +136,31 @@ Vc = f'<span style="color:orange;">{V:.2f}% </span>'
 
 ##  =============================================================== ##
 tot = ""
-url_main = f"https://finance.naver.com/item/main.naver?code={code}"
-res_main = requests.get(url_main, headers={"User-Agent": "Mozilla/5.0"})
-report = pd.read_html(StringIO(res_main.text))
 
-tot = report[5].iloc[0, 1]
-comp = report[3][["구성종목(구성자산)", "구성비중"]].copy()
-comp = comp.dropna(subset=["구성종목(구성자산)"])
+url_main = f"https://stock.naver.com/api/domestic/detail/{code}/ETFComponent"
+headers = { User-Agent": "Mozilla/5.0",
+    "Referer": f"https://stock.naver.com/domestic/stock/{code}/info/summary" }
+
+params = { startIdx": 0, "pageSize": 20 }
+
+res_main = requests.get(url_main, headers=headers, params=params, timeout=10)
+res_main.raise_for_status()
+data = res_main.json()
+comp = pd.DataFrame(data)
+comp = comp[["componentName", "weight"]].copy()
+
+comp = comp.rename(columns={
+    "componentName": "구성종목",
+    "weight": "구성비중"
+})
+
+comp = comp.dropna(subset=["구성종목"])
 comp["구성비중"] = comp["구성비중"].fillna("").astype(str)
+
 comp = comp.head(5).reset_index(drop=True)
 
-kk = ", ".join(
-    f"{row['구성종목(구성자산)']}({row['구성비중']})"
-    for _, row in comp.iterrows())
+kk = ", ".join(  f"{row['구성종목']}({row['구성비중']}%)"
+    for _, row in comp.iterrows() )
 
 ########################################################################################
 with col[2]:
