@@ -105,7 +105,7 @@ def fetch_naver_frgn_page(code):
 
 dfv = load_data(code)
 dfc = dfv.tail(20).copy()
-dff = _fetch_naver_frgn_page(code)
+dff = fetch_naver_frgn_page(code)
 dft = dfc[['Date','Close','Change']].merge(dff[['dd', '외국인', '기관', '개인', '보유율']],
     left_on='Date', right_on='dd', how='left').drop(columns='dd')
 cols = ['외국인', '기관', '개인']
