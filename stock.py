@@ -129,16 +129,13 @@ def load_data(code, T=60, N =1):
         print("실패")
         return None
 
-def _fetch_naver_frgn_page(stock_code, page):
+def _fetch_naver_frgn_page(stock_code):
 
     headers = { "User-Agent": "Mozilla/5.0", "Referer": f"https://stock.naver.com/domestic/stock/{stock_code}/price" }
-    page_size = 10
-    start_idx = (page - 1) * page_size
-
     url = f"https://stock.naver.com/api/domestic/detail/{stock_code}/trend"
 
     try:
-        res = requests.get( url, headers=headers, params={ "tradeType": "KRX", "startIdx": start_idx, "pageSize": page_size }, timeout=7 )
+        res = requests.get( url, headers=headers, params={ "tradeType": "KRX", "startIdx": 0, "pageSize": 10}, timeout=7 )
         res.raise_for_status()
 
         data = res.json()
