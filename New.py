@@ -32,32 +32,20 @@ with col[0]:
     if code:
         with st.spinner("종목명 조회 중..."):
             try:
-                url  = f'https://finance.naver.com/item/main.naver?code={code}'
-                res  = requests.get(url, headers={"User-Agent": "Mozilla/5.0"}, timeout=7)
-                soup = BeautifulSoup(res.text, "lxml")
-
-                item = ''
-                for sel in [
-                    "div.wrap_company h2 a",
-                    "h2.h_company a",
-                    "div.wrap_company h2",
-                    "h2.h_company",
-                ]:
-                    tag = soup.select_one(sel)
-                    if tag:
-                        item = tag.get_text(strip=True)
-                        break
-
-                # 위 셀렉터 모두 실패 시 <title> 태그로 fallback
-                if not item:
-                    title_tag = soup.find("title")
-                    if title_tag:
-                        item = title_tag.get_text(strip=True).split(":")[0].strip()
-
+                url = f"https://stock.naver.com/api/domestic/detail/{code}/detail"
+            
+                headers = { "User-Agent": "Mozilla/5.0", "Referer": f"https://stock.naver.com/domestic/stock/{code}/price"}
+            
+                res = requests.get(url, headers=headers, timeout=7)
+                res.raise_for_status()
+                data = res.json()
+                item = data.get("itemname", "")
+            
             except Exception as e:
                 print(f"[코드→이름] 오류 ({code}): {e}")
-                item = ''
-        name_str = item if item else '(종목명 없음)'
+                item = ""
+            
+            name_str = item if item else "(종목명 없음)"
 
 ##############################   데이터  ######################################
 
