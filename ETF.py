@@ -138,7 +138,7 @@ Vc = f'<span style="color:orange;">{V:.2f}% </span>'
 tot = ""
 
 url_main = f"https://stock.naver.com/api/domestic/detail/{code}/ETFComponent"
-headers = { User-Agent": "Mozilla/5.0", "Referer": f"https://stock.naver.com/domestic/stock/{code}/info/summary" }
+headers = { "User-Agent": "Mozilla/5.0", "Referer": f"https://stock.naver.com/domestic/stock/{code}/info/summary" }
 
 params = { startIdx": 0, "pageSize": 20 }
 
