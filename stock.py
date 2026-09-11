@@ -129,50 +129,48 @@ def load_data(code, T=60, N =1):
         print("실패")
         return None
 
-def _fetch_naver_frgn_page(stock_code):
+def _fetch_naver_frgn_page(code):
 
-    headers = { "User-Agent": "Mozilla/5.0", "Referer": f"https://stock.naver.com/domestic/stock/{stock_code}/price" }
-    url = f"https://stock.naver.com/api/domestic/detail/{stock_code}/trend"
+    url = f'https://stock.naver.com/api/domestic/detail/{code}/trend'
+
+    headers = {
+        'User-Agent': 'Mozilla/5.0',
+        'Referer': f'https://stock.naver.com/domestic/stock/{code}/price'
+    }
+
+    params = { 'tradeType': 'KRX','startIdx': 0, 'pageSize': 100 }
 
     try:
-        res = requests.get( url, headers=headers, params={ "tradeType": "KRX", "startIdx": 0, "pageSize": 10}, timeout=7 )
+        res = requests.get(url, headers=headers, params=params, timeout=10)
         res.raise_for_status()
-
         data = res.json()
         fk = pd.DataFrame(data)
+    except Exception:
+        return pd.DataFrame( columns=['날짜', 'dd', '종가', '외국인', '기관', '개인', '보유율'] )
 
-        if fk.empty:
-            return pd.DataFrame( columns=[ '날짜','종가','등락률', '거래량','기관','외국인','보유율','개인'] )
+    if fk.empty:
+        return pd.DataFrame( columns=['날짜', 'dd', '종가', '외국인', '기관', '개인', '보유율'] )
 
-        # 새 API → 기존 컬럼명
-        fk = fk.rename(columns={
-            'bizdate': '날짜',
-            'closePrice': '종가',
-            'tradeVolume': '거래량',
-            'foreignerPureBuyQuant': '외국인',
-            'organPureBuyQuant': '기관',
-            'individualPureBuyQuant': '개인',
-            'frgnHoldRatio': '보유율'
-        })
+    # 새 네이버 API → 기존 컬럼명으로 변경
+    fk = fk.rename(columns={ 'bizdate': '날짜', 'closePrice': '종가', 'tradeVolume': '거래량',
+                            'foreignerPureBuyQuant': '외국인', 'organPureBuyQuant': '기관', 'individualPureBuyQuant': '개인', 'frgnHoldRatio': '보유율'})
 
-        # 기존 코드에는 없던 값들은 동일한 컬럼 구조를 위해 생성
-        fk['등락률'] = 0
+    fk['날짜'] = pd.to_datetime( fk['날짜'].astype(str), format='%Y%m%d', errors='coerce'  )
 
-        fk['날짜'] = pd.to_datetime( fk['날짜'].astype(str), format='%Y%m%d', errors='coerce'  )
+    # 숫자형 변환
+    for c in ['종가', '외국인', '기관', '개인', '보유율']:
+        if c in fk.columns:
+            fk[c] = pd.to_numeric(fk[c], errors='coerce')
 
-        # 숫자 변환
-        for col in ['종가', '거래량', '기관', '외국인', '개인', '보유율']:
-            fk[col] = pd.to_numeric(fk[col], errors='coerce')
+    # 기존 코드와 동일하게 1,000주 단위
+    for c in ['외국인', '기관', '개인']:
+        fk[c] = (fk[c] / 1000).round(0).fillna(0).astype(int)
 
-        # 기존 코드와 동일하게 천주 단위로 변환
-        for col in ['기관', '외국인', '개인']:
-            fk[col] = (fk[col] / 1000).round(0).fillna(0).astype(int)
+    # 기존 dd 형식
+    fk['dd'] = fk['날짜'].dt.strftime('%m.%d')
 
-        return fk[[ '날짜','종가','등락률', '거래량','기관','외국인','보유율','개인']].reset_index(drop=True)
-
-    except Exception as e:
-        print(f"[네이버 수급] 오류 ({stock_code}, page={page}): {e}")
-        return pd.DataFrame( columns=[ '날짜','종가','등락률', '거래량','기관','외국인','보유율','개인'] )
+    fk = fk[['날짜', 'dd', '종가', '외국인', '기관', '개인', '보유율'] ].reset_index(drop=True)
+    return fk
 
 dfv = load_data(code)
 dfc = dfv.tail(20).copy()
