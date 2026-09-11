@@ -60,31 +60,47 @@ def load_data(code, T=60, N =1):
         print("실패")
         return None
 
-def _fetch_naver_frgn_page(code):
-    headers = {"User-Agent": "Mozilla/5.0"}
-    url = f'https://finance.naver.com/item/frgn.naver?code={code}'
-    res = requests.get(url, headers=headers)
+def fetch_naver_frgn_page(code):
+
+    url = f'https://stock.naver.com/api/domestic/detail/{code}/trend'
+
+    headers = {
+        'User-Agent': 'Mozilla/5.0',
+        'Referer': f'https://stock.naver.com/domestic/stock/{code}/price'
+    }
+
+    params = { 'tradeType': 'KRX','startIdx': 0, 'pageSize': 100 }
 
     try:
-        fk = pd.read_html(StringIO(res.text))[2]
-        fk = fk.dropna()
-        fk.columns = ['날짜','종가','전일비','등락률','거래량','기관','외국인','보유량','보유율']
-    except:
-        fk = pd.read_html(StringIO(res.text))[3]
-        fk = fk.dropna()
-        fk.columns = ['날짜','종가','전일비','등락률','거래량','기관','외국인','보유량','보유율']
+        res = requests.get(url, headers=headers, params=params, timeout=10)
+        res.raise_for_status()
+        data = res.json()
+        fk = pd.DataFrame(data)
+    except Exception:
+        return pd.DataFrame( columns=['날짜', 'dd', '종가', '외국인', '기관', '개인', '보유율'] )
 
-    fk['개인'] = -(fk['외국인'] + fk['기관'])
-  
-    if fk['보유율'].dtype == 'O':
-        fk['보유율'] = fk['보유율'].str.replace('%','').astype(float)
+    if fk.empty:
+        return pd.DataFrame( columns=['날짜', 'dd', '종가', '외국인', '기관', '개인', '보유율'] )
 
-    fk['dd'] = pd.to_datetime(fk['날짜']).dt.strftime('%m.%d')
-    for col in ['외국인', '기관', '개인']:
-        fk[col] = (fk[col] / 1000).round(0).fillna(0).astype(int)
+    # 새 네이버 API → 기존 컬럼명으로 변경
+    fk = fk.rename(columns={ 'bizdate': '날짜', 'closePrice': '종가', 'tradeVolume': '거래량',
+                            'foreignerPureBuyQuant': '외국인', 'organPureBuyQuant': '기관', 'individualPureBuyQuant': '개인', 'frgnHoldRatio': '보유율'})
 
-    fk = fk[['날짜','dd', '종가', '외국인', '기관', '개인', '보유율']]
+    fk['날짜'] = pd.to_datetime( fk['날짜'].astype(str), format='%Y%m%d', errors='coerce'  )
 
+    # 숫자형 변환
+    for c in ['종가', '외국인', '기관', '개인', '보유율']:
+        if c in fk.columns:
+            fk[c] = pd.to_numeric(fk[c], errors='coerce')
+
+    # 기존 코드와 동일하게 1,000주 단위
+    for c in ['외국인', '기관', '개인']:
+        fk[c] = (fk[c] / 1000).round(0).fillna(0).astype(int)
+
+    # 기존 dd 형식
+    fk['dd'] = fk['날짜'].dt.strftime('%m.%d')
+
+    fk = fk[['날짜', 'dd', '종가', '외국인', '기관', '개인', '보유율'] ].reset_index(drop=True)
     return fk
 
 dfv = load_data(code)
