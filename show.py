@@ -68,7 +68,7 @@ for idx, row in dfv.iterrows():
   
         st.markdown(
             f' [{ch}]_{SCHD}'
-            f'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'
+            f'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;',
             f'{CD}원, ({RD}) '
             f'<a href="https://stock.naver.com/domestic/stock/{code}/price" target="_blank">네이버 →</a>',  unsafe_allow_html=True )
 
