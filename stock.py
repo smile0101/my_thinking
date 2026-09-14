@@ -306,20 +306,20 @@ def format2(val):
 btn = "padding:3px 9px;border:1px solid #bbb;border-radius:4px;text-decoration:none;font-size:15px;margin:2px 20px 2px 0;"
 
 url_think = f'https://www.thinkpool.com/item/{code}'
-url_min   = f'https://m.stock.naver.com/fchart/domestic/stock/{code}'
+url_nv    = f'https://stock.naver.com/domestic/stock/{code}/price'
 url_tr    = f'https://kr.tradingview.com/chart/Y3Tq45pg/?symbol=KRX%3A{code}'
 url_fn    = f"https://wcomp.fnguide.com/?c_id=AA&menu_type=01&cmp_cd={code}"
-url_nv    = f'https://m.stock.naver.com/domestic/stock/{code}/research'
+url_min   = f'https://m.stock.naver.com/fchart/domestic/stock/{code}'
 url_ggl   = f"https://news.google.com/search?q={quote(item)}&hl=ko&gl=KR&ceid=KR:ko"
 
 row_link = st.columns([0.5, 6.5, 3, 1])
 with row_link[1]:
     st.markdown(
         f'<a href="{url_think}" target="_blank" style="{btn}">Think</a>'
-        f'<a href="{url_min}"   target="_blank" style="{btn}">chart</a>'
+        f'<a href="{url_nv}"    target="_blank" style="{btn}">Nv</a>'
         f'<a href="{url_tr}"    target="_blank" style="{btn}">Tr</a>'
         f'<a href="{url_fn}"    target="_blank" style="{btn}">Fn</a>'
-        f'<a href="{url_nv}"    target="_blank" style="{btn}">Nv</a>'
+        f'<a href="{url_min}"   target="_blank" style="{btn}">chart</a>'
         f'<a href="{url_ggl}"   target="_blank" style="{btn}">Google</a>',
         unsafe_allow_html=True
     )
