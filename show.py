@@ -65,7 +65,7 @@ for idx, row in dfv.iterrows():
     col1, col2 = st.columns(2)
     with col1:
         st.image(f"https://ssl.pstatic.net/imgfinance/chart/item/area/week/{code}.png")  
-        st.markdown( f' [{ch}]_{SCHD}', unsafe_allow_html=True)
+        st.markdown( f' [{ch}]_&nbsp;&nbsp;{SCHD}', unsafe_allow_html=True)
         st.markdown(f'{CD}원, ({RD}) '
             f'<span style="margin-left:10px;"></span>'
             f'<a href="https://stock.naver.com/domestic/stock/{code}/price" target="_blank">네이버 </a>',  unsafe_allow_html=True )
