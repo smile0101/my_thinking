@@ -46,7 +46,7 @@ def get_recent(code):
 
 
 st.subheader("📈 관심 종목 현황")
-
+memo_list = []
 for idx, row in dfv.iterrows():
     item, code, 구분, buy = row.종목, row.코드, row.구분, row.buy
     df = get_recent(code)
@@ -57,6 +57,9 @@ for idx, row in dfv.iterrows():
     ch = " / ".join(df["Change"].iloc[-5:].apply(color_format))
     RR = round((CC - buy) / buy * 100, 1)
     RD = format1(RR)
+    memo_val = memo_map.get(code, "")
+    if memo_val:
+        memo_list.append({"종목": item, "메모": memo_val})
 
     st.markdown(f"##### 📌{item}_{구분}") 
     col1, col2 = st.columns(2)
