@@ -64,10 +64,10 @@ for idx, row in dfv.iterrows():
         st.image(f"https://ssl.pstatic.net/imgfinance/chart/item/area/week/{code}.png")
   
         st.markdown(
-            f'<a href="https://stock.naver.com/domestic/stock/{code}/price" target="_blank">네이버 →</a>'
-            f'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; [{ch}]_{SCHD}'
+            f' [{ch}]_{SCHD}'
             f'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'
-            f'{CD}원, ({RD}) ',  unsafe_allow_html=True )
+            f'{CD}원, ({RD}) '
+            f'<a href="https://stock.naver.com/domestic/stock/{code}/price" target="_blank">네이버 →</a>',  unsafe_allow_html=True )
 
     with col2:
         st.image(f"https://webchart.thinkpool.com/2021ReNew/stock1day_volume/A{code}.png")
