@@ -67,7 +67,7 @@ for idx, row in dfv.iterrows():
     with col1:
         st.image(f"https://ssl.pstatic.net/imgfinance/chart/item/area/week/{code}.png")  
         st.markdown( f' [{ch}]_&nbsp;&nbsp;{SCHD}', unsafe_allow_html=True)
-        st.markdown(f'현재:{CD} / {BD}원, ({RD}) '
+        st.markdown(f'현재:{CD} / {BD}원, ({format1(RR)}) '
             f'<span style="margin-left:10px;"></span>'
             f'<a href="https://stock.naver.com/domestic/stock/{code}/price" target="_blank">네이버 </a>',  unsafe_allow_html=True )
 
