@@ -194,9 +194,11 @@ except (TypeError, ValueError):
 CC = dfv['Close'].iloc[-1]
 YY = dfv["Close"].iloc[-2]
 D5 = dfv["MA5"].iloc[-1]
+D10 = dfv["MA10"].iloc[-1]
 D20 = dfv["MA20"].iloc[-1]
-CD5 = int(CC-D5)
-D520 = int(D5-D20)
+CD5 = int(D5/CC*100)
+CD10 = int(D10/CC*100)
+CD20 = int(D20/CC*100)
 CY = int(CC-YY)
 TRR = (CC-YY)/YY*100
 
@@ -303,6 +305,14 @@ def format2(val):
     else:
         return f'<span>0</span>'
 
+def format3(val):
+    if val > 100:
+        return f'<span style="color:#d63031; font-weight:bold;">▲{val}</span>'
+    elif val < 100:
+        return f'<span style="color:#0984e3; font-weight:bold;">▼{abs(val)}</span>'
+    else:
+        return f'<span>100</span>'
+        
 btn = "padding:3px 9px;border:1px solid #bbb;border-radius:4px;text-decoration:none;font-size:15px;margin:2px 20px 2px 0;"
 
 url_think = f'https://www.thinkpool.com/item/{code}'
@@ -324,7 +334,7 @@ with row_link[1]:
         unsafe_allow_html=True
     )
 with row_link[2]:
-    ch_combined = f"{format2(CD5)} / {format2(D520)} &emsp;&emsp;{format2(CY)} / {format1(TRR)} "
+    ch_combined = f"{format3(CD5)} / {format3(CD10)} / {format3(CD20)}  &emsp;&emsp;{format2(CY)} / {format1(TRR)} "
     st.markdown( f'<div style="font-size: 18px;">{ch_combined}</div>', unsafe_allow_html=True, )
 
 with row_link[3]:
