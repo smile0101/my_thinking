@@ -5,7 +5,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import streamlit as st
 import matplotlib.font_manager as fm
-matplotlib.use("Agg")  # 화면 없이 이미지로만 렌더링 (Streamlit 의존 제거)
+matplotlib.use("Agg")  # 화면 없이 이미지로만 렌더링 (Streamlit 의존 )
 import os, numpy as np, FinanceDataReader as fdr
 from scipy.signal import find_peaks
 from pymongo import MongoClient
