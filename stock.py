@@ -527,7 +527,7 @@ def trend(code):
     # 5. 그래프 그리기 설정
     plt.rcParams['axes.unicode_minus'] = False
 
-    fig, ax = plt.subplots(figsize=(12, 6))
+    fig, ax = plt.subplots(figsize=(12, 4))
 
     x = df['Date_Str']
     y = df['Close']
