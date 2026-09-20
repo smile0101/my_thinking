@@ -556,7 +556,6 @@ def trend(code):
                 weight='bold', verticalalignment='bottom', horizontalalignment='center')
 
     # 레이블 및 타이틀 설정
-    ax.set_xlabel('날짜 (Date)', fontsize=12)
     ax.set_ylabel('주가 / 가격', fontsize=12, color='tab:blue')
     ax.tick_params(axis='x', rotation=45)
 
