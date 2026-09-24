@@ -473,28 +473,16 @@ else:
     st.markdown(table_html, unsafe_allow_html=True)
 
 #############################        Trend       ##########################################
-def trend(code):
-    df = fdr.DataReader(code).tail(30).reset_index()
+def plot_trend_subplot(ax, df, close_prices, order_val, item):
 
-    date_col = df.columns[0]
-    df.rename(columns={date_col: 'Date', 'Close': 'Close'}, inplace=True)
-
-    formatted_dates = []
-    for d in pd.to_datetime(df['Date']):
-        m = str(d.month)
-        day = str(d.day)
-        formatted_dates.append(f"{m}.{day}")
-    df['Date_Str'] = formatted_dates
-
-    close_prices = df['Close'].values
-
-    minima_indices = argrelextrema(close_prices, np.less, order=2)[0]
+    # 1. 저점(Minima) 계산
+    minima_indices = argrelextrema(close_prices, np.less, order=order_val)[0]
     if len(minima_indices) >= 2:
         low_indices = sorted(minima_indices, reverse=True)[:3]
         low_indices.sort()
     else:
-        low_indices = [len(close_prices)-20, len(close_prices)-10, len(close_prices)-1]
-        low_indices = [idx for idx in low_indices if 0 <= idx < len(close_prices)]
+        low_indices = [len(close_prices) - 20,len(close_prices) - 10, len(close_prices) - 1, ]
+        low_indices = [idx for idx in low_indices if 0 <= idx < len(close_prices) ]
 
     x_low = np.array(low_indices)
     y_low = close_prices[x_low]
@@ -504,13 +492,14 @@ def trend(code):
     else:
         trend_line_low = np.full(len(df), close_prices[-1])
 
-    maxima_indices = argrelextrema(close_prices, np.greater, order=2)[0]
+    # 2. 고점(Maxima) 계산
+    maxima_indices = argrelextrema(close_prices, np.greater, order=order_val)[0]
     if len(maxima_indices) >= 2:
         high_indices = sorted(maxima_indices, reverse=True)[:3]
         high_indices.sort()
     else:
-        high_indices = [len(close_prices)-20, len(close_prices)-10, len(close_prices)-1]
-        high_indices = [idx for idx in high_indices if 0 <= idx < len(close_prices)]
+        high_indices = [ len(close_prices) - 20, len(close_prices) - 10, len(close_prices) - 1,]
+        high_indices = [ idx for idx in high_indices if 0 <= idx < len(close_prices)]
 
     x_high = np.array(high_indices)
     y_high = close_prices[x_high]
@@ -520,55 +509,169 @@ def trend(code):
     else:
         trend_line_high = np.full(len(df), close_prices[-1])
 
+    # 3. 변동률(Cha) 계산
     latest_high = y_high[-1] if len(y_high) > 0 else close_prices[-1]
     latest_low = y_low[-1] if len(y_low) > 0 else close_prices[0]
-    cha_value = round((latest_high - latest_low) / latest_low * 100)
+    cha_value = (  round((latest_high - latest_low) / latest_low * 100)
+        if latest_low != 0
+        else 0  )
 
-    # 5. 그래프 그리기 설정
-    plt.rcParams['axes.unicode_minus'] = False
+    # 4. 그래프 그리기
+    x = df["Date_Str"]
+    y = df["Close"]
 
-    fig, ax = plt.subplots(figsize=(12, 4))
+    # 종가 선
+    ax.plot(x, y, color="tab:blue", linewidth=1.5, marker="o", markersize=3)
 
-    x = df['Date_Str']
-    y = df['Close']
-
-    # 주가 종가 선 그래프
-    ax.plot(x, y, color='tab:blue', linewidth=1.5, marker='o', markersize=3)
-
-    # 저점 추세선 및 마커 (빨간색)
-    ax.plot(x, trend_line_low, color='tab:red', linewidth=2, linestyle='--')
-    ax.scatter(x_low, y_low, color='tab:red', s=50, zorder=5)
-
-    # 저점 값 텍스트 그래프에 기입
+    # 저점 추세선 및 마커
+    ax.plot(x, trend_line_low, color="tab:red", linewidth=2, linestyle="--")
+    ax.scatter(x_low, y_low, color="tab:red", s=50, zorder=5)
     for idx in x_low:
         val = close_prices[idx]
-        ax.text(x.iloc[idx], val, f' {val:,.0f}', color='tab:red', fontsize=9, 
-                weight='bold', verticalalignment='top', horizontalalignment='center')
+        ax.text( x.iloc[idx], val, f" {val:,.0f}", color="tab:red", fontsize=8, weight="bold",
+            verticalalignment="top", horizontalalignment="center", )
 
-    # 고점 추세선 및 마커 (초록색)
-    ax.plot(x, trend_line_high, color='tab:green', linewidth=2, linestyle='--')
-    ax.scatter(x_high, y_high, color='tab:green', s=50, zorder=5)
-
-    # 고점 값 텍스트 그래프에 기입
+    # 고점 추세선 및 마커
+    ax.plot( x, trend_line_high, color="tab:green", linewidth=2, linestyle="--" )
+    ax.scatter(x_high, y_high, color="tab:green", s=50, zorder=5)
     for idx in x_high:
         val = close_prices[idx]
-        ax.text(x.iloc[idx], val, f' {val:,.0f}', color='tab:green', fontsize=9, 
-                weight='bold', verticalalignment='bottom', horizontalalignment='center')
+        ax.text( x.iloc[idx], val, f" {val:,.0f}", color="tab:green", fontsize=8, weight="bold",
+            verticalalignment="bottom", horizontalalignment="center",  )
 
-    # 레이블 및 타이틀 설정
-    ax.set_ylabel('주가 / 가격', fontsize=12, color='tab:blue')
-    ax.tick_params(axis='x', rotation=45)
+    # 축 및 타이틀 설정
 
-    # X축 그리드 추가
-    ax.grid(True, axis='x', linestyle='--', alpha=0.5)
+    ax.tick_params(axis="x", rotation=45, labelsize=8)
+    ax.grid(True, axis="x", linestyle="--", alpha=0.5)
 
-    # 타이틀에 고점, 저점 및 Cha(%) 표시
-    title_t = f' Cha: {cha_value}%'
-    plt.title(f"{item} {title_t}", fontsize=12)
+    sub_title = f"{item}[{order_val}],저점: {latest_low:,.0f}| 고점: {latest_high:,.0f} | Cha: {cha_value}%"
+    ax.set_title(sub_title, fontsize=11, pad=10)
+
+
+def trend(item, code):
+    df = fdr.DataReader(code).tail(50).reset_index()
+    # df = fdr.DataReader(code, '20260801','20260919').reset_index()
+    date_col = df.columns[0]
+    df.rename(columns={date_col: "Date", "Close": "Close"}, inplace=True)
+
+    formatted_dates = []
+    for d in pd.to_datetime(df["Date"]):
+        m = str(d.month)
+        day = str(d.day)
+        formatted_dates.append(f"{m}.{day}")
+    df["Date_Str"] = formatted_dates
+
+    close_prices = df["Close"].values
+
+    # 한글 폰트 설정
+    plt.rcParams["font.family"] = "Malgun Gothic"  # Windows
+    plt.rcParams["axes.unicode_minus"] = False
+
+    # 1행 2열 서브플롯 생성
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
+
+    # 왼쪽: order=2, 오른쪽: order=3
+    plot_trend_subplot(ax1, df, close_prices, order_val=2, item=item)
+    plot_trend_subplot(ax2, df, close_prices, order_val=3, item=item)
+
+
+    
+# def trend(code):
+#     df = fdr.DataReader(code).tail(30).reset_index()
+
+#     date_col = df.columns[0]
+#     df.rename(columns={date_col: 'Date', 'Close': 'Close'}, inplace=True)
+
+#     formatted_dates = []
+#     for d in pd.to_datetime(df['Date']):
+#         m = str(d.month)
+#         day = str(d.day)
+#         formatted_dates.append(f"{m}.{day}")
+#     df['Date_Str'] = formatted_dates
+
+#     close_prices = df['Close'].values
+
+#     minima_indices = argrelextrema(close_prices, np.less, order=2)[0]
+#     if len(minima_indices) >= 2:
+#         low_indices = sorted(minima_indices, reverse=True)[:3]
+#         low_indices.sort()
+#     else:
+#         low_indices = [len(close_prices)-20, len(close_prices)-10, len(close_prices)-1]
+#         low_indices = [idx for idx in low_indices if 0 <= idx < len(close_prices)]
+
+#     x_low = np.array(low_indices)
+#     y_low = close_prices[x_low]
+#     if len(x_low) >= 2:
+#         slope_low, intercept_low = np.polyfit(x_low, y_low, 1)
+#         trend_line_low = slope_low * np.arange(len(df)) + intercept_low
+#     else:
+#         trend_line_low = np.full(len(df), close_prices[-1])
+
+#     maxima_indices = argrelextrema(close_prices, np.greater, order=2)[0]
+#     if len(maxima_indices) >= 2:
+#         high_indices = sorted(maxima_indices, reverse=True)[:3]
+#         high_indices.sort()
+#     else:
+#         high_indices = [len(close_prices)-20, len(close_prices)-10, len(close_prices)-1]
+#         high_indices = [idx for idx in high_indices if 0 <= idx < len(close_prices)]
+
+#     x_high = np.array(high_indices)
+#     y_high = close_prices[x_high]
+#     if len(x_high) >= 2:
+#         slope_high, intercept_high = np.polyfit(x_high, y_high, 1)
+#         trend_line_high = slope_high * np.arange(len(df)) + intercept_high
+#     else:
+#         trend_line_high = np.full(len(df), close_prices[-1])
+
+#     latest_high = y_high[-1] if len(y_high) > 0 else close_prices[-1]
+#     latest_low = y_low[-1] if len(y_low) > 0 else close_prices[0]
+#     cha_value = round((latest_high - latest_low) / latest_low * 100)
+
+#     # 5. 그래프 그리기 설정
+#     plt.rcParams['axes.unicode_minus'] = False
+
+#     fig, ax = plt.subplots(figsize=(12, 4))
+
+#     x = df['Date_Str']
+#     y = df['Close']
+
+#     # 주가 종가 선 그래프
+#     ax.plot(x, y, color='tab:blue', linewidth=1.5, marker='o', markersize=3)
+
+#     # 저점 추세선 및 마커 (빨간색)
+#     ax.plot(x, trend_line_low, color='tab:red', linewidth=2, linestyle='--')
+#     ax.scatter(x_low, y_low, color='tab:red', s=50, zorder=5)
+
+#     # 저점 값 텍스트 그래프에 기입
+#     for idx in x_low:
+#         val = close_prices[idx]
+#         ax.text(x.iloc[idx], val, f' {val:,.0f}', color='tab:red', fontsize=9, 
+#                 weight='bold', verticalalignment='top', horizontalalignment='center')
+
+#     # 고점 추세선 및 마커 (초록색)
+#     ax.plot(x, trend_line_high, color='tab:green', linewidth=2, linestyle='--')
+#     ax.scatter(x_high, y_high, color='tab:green', s=50, zorder=5)
+
+#     # 고점 값 텍스트 그래프에 기입
+#     for idx in x_high:
+#         val = close_prices[idx]
+#         ax.text(x.iloc[idx], val, f' {val:,.0f}', color='tab:green', fontsize=9, 
+#                 weight='bold', verticalalignment='bottom', horizontalalignment='center')
+
+#     # 레이블 및 타이틀 설정
+#     ax.set_ylabel('주가 / 가격', fontsize=12, color='tab:blue')
+#     ax.tick_params(axis='x', rotation=45)
+
+#     # X축 그리드 추가
+#     ax.grid(True, axis='x', linestyle='--', alpha=0.5)
+
+#     # 타이틀에 고점, 저점 및 Cha(%) 표시
+#     title_t = f' Cha: {cha_value}%'
+#     plt.title(f"{item} {title_t}", fontsize=12)
     plt.tight_layout()
     st.pyplot(fig)
     plt.close(fig)
-trend(code)
+trend(item, code)
 
 ####################################### 그래프 ##################################################################
 def showV( item, d, T=60):
@@ -837,7 +940,7 @@ else:
 
 def plot_stock_st(df, stock_name):
     set_korean_font()
-    fig, ax1 = plt.subplots(figsize=(10, 4))
+    fig, ax1 = plt.subplots(figsize=(10, 3.5))
     x = range(len(df))
 
     ax1.plot(x, df['보유율'], marker='o', color='royalblue', label='보유율')
