@@ -543,6 +543,7 @@ def plot_trend_subplot(ax, df, close_prices, order_val, item):
     # 축 및 타이틀 설정
     ax.tick_params(axis="x", rotation=45, labelsize=6)
     ax.grid(True, axis="x", linestyle="--", alpha=0.5)
+    ax.tick_params(axis='y', labelsize=4)
 
     sub_title = f"[{order_val}],저점: {latest_low:,.0f}| 고점: {latest_high:,.0f} | Cha: {cha_value}%"
     ax.set_title(sub_title, fontsize=10, pad=10)
@@ -563,12 +564,8 @@ def trend(item, code):
 
     close_prices = df["Close"].values
 
-    # 한글 폰트 설정
-    # plt.rcParams["font.family"] = "Malgun Gothic"  # Windows
-    # plt.rcParams["axes.unicode_minus"] = False
-
     # 1행 2열 서브플롯 생성
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4))
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 3.5))
 
     # 왼쪽: order=2, 오른쪽: order=3
     plot_trend_subplot(ax1, df, close_prices, order_val=2, item=item)
