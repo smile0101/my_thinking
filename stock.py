@@ -475,18 +475,18 @@ else:
 #############################        Trend       ##########################################
 
 def plot_trend_subplot(ax, df, close_prices, order_val, item):
-
     # 1. 저점(Minima) 계산
     minima_indices = argrelextrema(close_prices, np.less, order=order_val)[0]
     if len(minima_indices) >= 2:
         low_indices = sorted(minima_indices, reverse=True)[:3]
         low_indices.sort()
     else:
-        low_indices = [len(close_prices) - 20,len(close_prices) - 10, len(close_prices) - 1, ]
-        low_indices = [idx for idx in low_indices if 0 <= idx < len(close_prices) ]
+        fallback = [len(close_prices) - 20, len(close_prices) - 10, len(close_prices) - 1]
+        low_indices = [idx for idx in fallback if 0 <= idx < len(close_prices)]
 
     x_low = np.array(low_indices)
-    y_low = close_prices[x_low]
+    y_low = close_prices[x_low] if len(x_low) > 0 else np.array([])
+
     if len(x_low) >= 2:
         slope_low, intercept_low = np.polyfit(x_low, y_low, 1)
         trend_line_low = slope_low * np.arange(len(df)) + intercept_low
@@ -499,11 +499,12 @@ def plot_trend_subplot(ax, df, close_prices, order_val, item):
         high_indices = sorted(maxima_indices, reverse=True)[:3]
         high_indices.sort()
     else:
-        high_indices = [ len(close_prices) - 20, len(close_prices) - 10, len(close_prices) - 1,]
-        high_indices = [ idx for idx in high_indices if 0 <= idx < len(close_prices)]
+        fallback = [len(close_prices) - 20, len(close_prices) - 10, len(close_prices) - 1]
+        high_indices = [idx for idx in fallback if 0 <= idx < len(close_prices)]
 
     x_high = np.array(high_indices)
-    y_high = close_prices[x_high]
+    y_high = close_prices[x_high] if len(x_high) > 0 else np.array([])
+
     if len(x_high) >= 2:
         slope_high, intercept_high = np.polyfit(x_high, y_high, 1)
         trend_line_high = slope_high * np.arange(len(df)) + intercept_high
@@ -513,9 +514,7 @@ def plot_trend_subplot(ax, df, close_prices, order_val, item):
     # 3. 변동률(Cha) 계산
     latest_high = y_high[-1] if len(y_high) > 0 else close_prices[-1]
     latest_low = y_low[-1] if len(y_low) > 0 else close_prices[0]
-    cha_value = (  round((latest_high - latest_low) / latest_low * 100)
-        if latest_low != 0
-        else 0  )
+    cha_value = round((latest_high - latest_low) / latest_low * 100) if latest_low != 0 else 0
 
     # 4. 그래프 그리기
     x = df["Date_Str"]
@@ -524,52 +523,57 @@ def plot_trend_subplot(ax, df, close_prices, order_val, item):
     # 종가 선
     ax.plot(x, y, color="tab:blue", linewidth=1.5, marker="o", markersize=3)
 
-    # 저점 추세선 및 마커
+    # 저점 추세선 및 마커 (문자열 라벨 위치에 매칭되도록 x.iloc 사용)
     ax.plot(x, trend_line_low, color="tab:red", linewidth=2, linestyle="--")
-    ax.scatter(x_low, y_low, color="tab:red", s=50, zorder=5)
-    for idx in x_low:
-        val = close_prices[idx]
-        ax.text( x.iloc[idx], val, f" {val:,.0f}", color="tab:red", fontsize=8, weight="bold",
-            verticalalignment="top", horizontalalignment="center", )
+    if len(x_low) > 0:
+        ax.scatter(x.iloc[x_low], y_low, color="tab:red", s=50, zorder=5)
+        for idx in x_low:
+            val = close_prices[idx]
+            ax.text(
+                x.iloc[idx], val, f" {val:,.0f}",
+                color="tab:red", fontsize=8, weight="bold",
+                verticalalignment="top", horizontalalignment="center"
+            )
 
     # 고점 추세선 및 마커
-    ax.plot( x, trend_line_high, color="tab:green", linewidth=2, linestyle="--" )
-    ax.scatter(x_high, y_high, color="tab:green", s=50, zorder=5)
-    for idx in x_high:
-        val = close_prices[idx]
-        ax.text( x.iloc[idx], val, f" {val:,.0f}", color="tab:green", fontsize=8, weight="bold",
-            verticalalignment="bottom", horizontalalignment="center",  )
+    ax.plot(x, trend_line_high, color="tab:green", linewidth=2, linestyle="--")
+    if len(x_high) > 0:
+        ax.scatter(x.iloc[x_high], y_high, color="tab:green", s=50, zorder=5)
+        for idx in x_high:
+            val = close_prices[idx]
+            ax.text(
+                x.iloc[idx], val, f" {val:,.0f}",
+                color="tab:green", fontsize=8, weight="bold",
+                verticalalignment="bottom", horizontalalignment="center"
+            )
 
     # 축 및 타이틀 설정
-    ax.tick_params(axis="x", rotation=45, labelsize=6)
+    ax.tick_params(axis="x", rotation=45, labelsize=4)
     ax.grid(True, axis="x", linestyle="--", alpha=0.5)
-    ax.tick_params(axis='y', labelsize=4)
+    ax.set_yticklabels([])
 
-    sub_title = f"[{order_val}],저점: {latest_low:,.0f}| 고점: {latest_high:,.0f} | Cha: {cha_value}%"
+    sub_title = f"{order_val}. 저점: {latest_low:,.0f} | 고점: {latest_high:,.0f} | Cha: {cha_value}%"
     ax.set_title(sub_title, fontsize=10, pad=10)
 
 
 def trend(item, code):
     df = fdr.DataReader(code).tail(50).reset_index()
-    # df = fdr.DataReader(code, '20260801','20260919').reset_index()
+    # df = fdr.DataReader(code, '20260701','20260825').reset_index()
     date_col = df.columns[0]
     df.rename(columns={date_col: "Date", "Close": "Close"}, inplace=True)
 
-    formatted_dates = []
-    for d in pd.to_datetime(df["Date"]):
-        m = str(d.month)
-        day = str(d.day)
-        formatted_dates.append(f"{m}.{day}")
+    formatted_dates = [f"{d.month}.{d.day}" for d in pd.to_datetime(df["Date"])]
     df["Date_Str"] = formatted_dates
 
     close_prices = df["Close"].values
 
-    # 1행 2열 서브플롯 생성
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 3.5))
+    # 1행 3열 서브플롯 생성 (수정된 부분)
+    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(13, 3.5))
 
-    # 왼쪽: order=2, 오른쪽: order=3
-    plot_trend_subplot(ax1, df, close_prices, order_val=2, item=item)
-    plot_trend_subplot(ax2, df, close_prices, order_val=3, item=item)
+    # 각각 order_val=1, 2, 3으로 호출
+    plot_trend_subplot(ax1, df, close_prices, order_val=1, item=item)
+    plot_trend_subplot(ax2, df, close_prices, order_val=2, item=item)
+    plot_trend_subplot(ax3, df, close_prices, order_val=3, item=item)
 
     plt.tight_layout()
     st.pyplot(fig)
