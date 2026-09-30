@@ -81,7 +81,7 @@ def build_table_html( df):
 
   col_order = list(display_10['Date']) + ['1W', '2W', '3W', '1M', '2M']
 
-################################################################################
+#########################################################################
 
   html = '<table class="etf-table"><thead><tr><th>항목</th>'
 
@@ -219,7 +219,7 @@ def trend(item, code):
     plt.rcParams["axes.unicode_minus"] = False
 
     # 1행 3열 서브플롯 생성 (수정된 부분)
-    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(12, 4))
+    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(12, 3))
 
     plot_trend_subplot(ax1, df, close_prices, order_val=1, item=item)
     plot_trend_subplot(ax2, df, close_prices, order_val=2, item=item)
@@ -230,6 +230,7 @@ def trend(item, code):
     st.pyplot(fig)
     plt.close(fig)
 
+################################################################################################
 stock_list = [
     {   "item": "코스피",
         "code": "^KS11",
@@ -250,6 +251,7 @@ stock_list = [
         "code": "IXIC",
         "url": "https://ssl.pstatic.net/imgfinance/chart/world/continent/NAS@IXIC.png",}]
 
+
 for info in stock_list:
     item_name = info["item"]
     item_code = info["code"]
@@ -259,17 +261,47 @@ for info in stock_list:
     df_data = load_data(item_code, T=60, N=1)
     
     st.subheader(item_name)
-    st.image(item_url, width='stretch')
-    
+
     if df_data is not None and not df_data.empty:
-        # 1. HTML 테이블 도표 렌더링
-        table_html = build_table_html( df_data)
-        st.markdown(table_html, unsafe_allow_html=True)
+
+        col_left, col_right = st.columns([1, 2], gap="medium")
+        
+        # 좌측: 이미지 (높이를 350px로 고정하고 박스 안에 맞춤)
+        with col_left:
+             st.markdown( f""" <div style="width: 100%;">  <img src="{item_url}" style="width: 600px; height: 150px; object-fit: fill;" /> </div> """,
+            unsafe_allow_html=True )
+        # 우측: 테이블 (동일하게 높이 350px 및 스크롤 지정)
+        with col_right:
+            table_html = build_table_html(df_data)
+            styled_table_html = f"""
+            <div style="width: 100%; height: 150px; max-height: 150px; overflow-y: auto; border: 1px solid #e0e0e0; border-radius: 4px; padding: 5px; box-sizing: border-box;">
+                {table_html}
+            </div>
+            """
+            st.markdown(styled_table_html, unsafe_allow_html=True)        
         
         # 2. Trend 그래프 렌더링
         trend(item_name, item_code)
-        
-        st.markdown("<br>", unsafe_allow_html=True)
+
         st.markdown("---")
     else:
         st.warning(f"[{item_name}] ({item_code}) 데이터 실패")
+
+keys = {
+
+    '투자자(코스피)' : 'https://ssl.pstatic.net/imgfinance/chart/sise/trendUitradeDayKOSPI.png?sid=1697448197552',
+    '투자자(코스닥)' : 'https://ssl.pstatic.net/imgfinance/chart/sise/trendUitradeDayKOSDAQ.png?sid=1697448286377',
+    '증시자금' : 'https://ssl.pstatic.net/imgfinance/chart/sise/deposit_customer_deposit.png',
+    'BTC(1일)' : 'https://imagechart.upbit.com/d/mini/BTC.png',
+}
+
+items = list(keys.items()) # (이름, URL) 튜플 리스트로 변환
+cols_per_row = 4
+for i in range(0, len(items), cols_per_row):
+    row_items = items[i : i + cols_per_row]
+    cols = st.columns(cols_per_row)
+    
+    for idx, (name, url) in enumerate(row_items):
+        with cols[idx]: 
+            st.caption(f"**{name}**") # 이미지 위에 제목 표시
+            st.image(url, width='stretch') #`width='content'
