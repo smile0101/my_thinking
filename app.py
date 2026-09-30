@@ -8,7 +8,8 @@ import matplotlib.font_manager as fm
 from datetime import datetime, timedelta
 from scipy.signal import argrelextrema
 
-# 페이지 설정
+matplotlib.rcParams['axes.unicode_minus'] = False
+
 st.set_page_config(page_icon="♥", page_title="지수", layout="wide")
 st.subheader("📊 지수") 
 def set_korean_font():
