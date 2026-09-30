@@ -201,7 +201,7 @@ def plot_trend_subplot(ax, df, close_prices, order_val, item):
     ax.grid(True, axis="x", linestyle="--", alpha=0.5)
     ax.set_yticklabels([])
 
-    sub_title = f"{order_val}.Low: {latest_low:,.0f} | High: {latest_high:,.0f} | Cha: {cha_value}%"
+    sub_title = f"{order_val}.L: {latest_low:,.0f} | H : {latest_high:,.0f} | Cha: {cha_value}%"
     ax.set_title(sub_title, fontsize=10, pad=10)
 
 def trend(item, code):
