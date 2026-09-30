@@ -13,35 +13,7 @@ matplotlib.rcParams['axes.unicode_minus'] = False
 
 st.set_page_config(page_icon="♥", page_title="지수", layout="wide")
 st.subheader("📊 지수") 
-def set_korean_font():
-    plt.rcParams['axes.unicode_minus'] = False
 
-    font_candidates = [
-        "/usr/share/fonts/truetype/nanum/NanumGothic.ttf",  # Linux(Streamlit Cloud)
-        "C:/Windows/Fonts/malgun.ttf",                       # Windows 로컬
-        "/tmp/NanumGothic.ttf",                               # 다운로드 캐시
-    ]
-
-    for path in font_candidates:
-        if os.path.exists(path):
-            fm.fontManager.addfont(path)
-            font_name = fm.FontProperties(fname=path).get_name()
-            plt.rc('font', family=font_name)
-            return
-
-    # 로컬에 없으면 다운로드 시도
-    font_path = "/tmp/NanumGothic.ttf"
-    font_url = "https://github.com/googlefonts/nanum-gothic/raw/main/fonts/ttf/NanumGothic.ttf"
-    try:
-        import urllib.request
-        urllib.request.urlretrieve(font_url, font_path)
-        fm.fontManager.addfont(font_path)
-        font_name = fm.FontProperties(fname=font_path).get_name()
-        plt.rc('font', family=font_name)
-    except Exception as e:
-        print(f"폰트 다운로드 실패: {e}")
-
-set_korean_font()
 def load_data(code, T=60, N=1):
   try:
     # day = (datetime.now() - timedelta(days=300)).strftime('%Y%m%d')
@@ -229,9 +201,8 @@ def plot_trend_subplot(ax, df, close_prices, order_val, item):
     ax.grid(True, axis="x", linestyle="--", alpha=0.5)
     ax.set_yticklabels([])
 
-    sub_title = f"{order_val}.{item} 저점: {latest_low:,.0f} | 고점: {latest_high:,.0f} | Cha: {cha_value}%"
+    sub_title = f"{order_val}.Low: {latest_low:,.0f} | High: {latest_high:,.0f} | Cha: {cha_value}%"
     ax.set_title(sub_title, fontsize=10, pad=10)
-
 
 def trend(item, code):
     df = fdr.DataReader(code).tail(50).reset_index()
@@ -288,11 +259,11 @@ for info in stock_list:
 
     if df_data is not None and not df_data.empty:
 
-        col_left, col_right = st.columns([1, 2], gap="medium")
+        col_left, col_right = st.columns([1,2.5], gap="medium")
         
         # 좌측: 이미지 (높이를 350px로 고정하고 박스 안에 맞춤)
         with col_left:
-             st.markdown( f""" <div style="width: 100%;">  <img src="{item_url}" style="width: 600px; height: 150px; object-fit: fill;" /> </div> """,
+             st.markdown( f""" <div style="width: 100%;">  <img src="{item_url}" style="width: 550px; height: 150px; object-fit: fill;" /> </div> """,
             unsafe_allow_html=True )
         # 우측: 테이블 (동일하게 높이 350px 및 스크롤 지정)
         with col_right:
