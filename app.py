@@ -13,23 +13,35 @@ matplotlib.rcParams['axes.unicode_minus'] = False
 
 st.set_page_config(page_icon="♥", page_title="지수", layout="wide")
 st.subheader("📊 지수") 
-# def set_korean_font():
-#     font_candidates = [
-#         "/usr/share/fonts/truetype/nanum/NanumGothic.ttf",  # Linux(Streamlit Cloud)
-#         "C:/Windows/Fonts/malgun.ttf",                       # Windows 로컬
-#     ]
-#     for path in font_candidates:
-#         if os.path.exists(path):
-#             fm.fontManager.addfont(path)
-#             font_name = fm.FontProperties(fname=path).get_name()
-#             plt.rc('font', family=font_name)
-#             plt.rcParams['axes.unicode_minus'] = False
-#             return
-#     # 못 찾으면 기본값 유지 (한글 깨짐 방지용 최소 조치)
-#     plt.rcParams['axes.unicode_minus'] = False
+def set_korean_font():
+    plt.rcParams['axes.unicode_minus'] = False
 
-# set_korean_font() 
+    font_candidates = [
+        "/usr/share/fonts/truetype/nanum/NanumGothic.ttf",  # Linux(Streamlit Cloud)
+        "C:/Windows/Fonts/malgun.ttf",                       # Windows 로컬
+        "/tmp/NanumGothic.ttf",                               # 다운로드 캐시
+    ]
 
+    for path in font_candidates:
+        if os.path.exists(path):
+            fm.fontManager.addfont(path)
+            font_name = fm.FontProperties(fname=path).get_name()
+            plt.rc('font', family=font_name)
+            return
+
+    # 로컬에 없으면 다운로드 시도
+    font_path = "/tmp/NanumGothic.ttf"
+    font_url = "https://github.com/googlefonts/nanum-gothic/raw/main/fonts/ttf/NanumGothic.ttf"
+    try:
+        import urllib.request
+        urllib.request.urlretrieve(font_url, font_path)
+        fm.fontManager.addfont(font_path)
+        font_name = fm.FontProperties(fname=font_path).get_name()
+        plt.rc('font', family=font_name)
+    except Exception as e:
+        print(f"폰트 다운로드 실패: {e}")
+
+set_korean_font()
 def load_data(code, T=60, N=1):
   try:
     # day = (datetime.now() - timedelta(days=300)).strftime('%Y%m%d')
@@ -231,12 +243,6 @@ def trend(item, code):
     df["Date_Str"] = formatted_dates
 
     close_prices = df["Close"].values
-
-    # 한글 폰트 설정
-    plt.rcParams["font.family"] = "Malgun Gothic"  # Windows
-    plt.rcParams["axes.unicode_minus"] = False
-
-    # 1행 3열 서브플롯 생성 (수정된 부분)
     fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(12, 3))
 
     plot_trend_subplot(ax1, df, close_prices, order_val=1, item=item)
