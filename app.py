@@ -124,7 +124,7 @@ def plot_trend_subplot(ax, df, close_prices, order_val, item):
     count_map = {1: 5, 2: 4, 3: 3}
     limit_count = count_map.get(order_val, 3)  # 기본값은 3개
 
-    # 1. 저점(Minima) 계산
+    # 1. 저점 계산
     minima_indices = argrelextrema(close_prices, np.less, order=order_val)[0]
     if len(minima_indices) >= 2:
         low_indices = sorted(minima_indices, reverse=True)[:limit_count]
