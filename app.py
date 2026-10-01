@@ -54,9 +54,8 @@ def fmt_cell(val, row):
   if row == 'Change':
     return f'{val:+.1f}%'
   return str(val)
-
-# ── 종목별 표 HTML 생성 ─────────────────────────────
-def build_table_html( df):
+#######################################################################
+def build_table_html(df):
   periods = {}
   n = len(df)
   if n >= 5: periods['1W'] = calc_period(df, 5, '1W')
@@ -82,10 +81,26 @@ def build_table_html( df):
     )
 
   col_order = list(display_10['Date']) + ['1W', '2W', '3W', '1M', '2M']
+  html = '''<style>
+    .etf-table {
+        border: 2px solid #444444; /* 테이블 바깥 테두리 */
+        border-collapse: collapse;
+    }
+    .etf-table th:first-child, 
+    .etf-table td.row-label {
+        border-right: 2px solid #444444;
+    }
+    /* 헤더(첫 줄) 아래쪽에 굵은 선 추가 */
+    .etf-table thead th {
+        border-bottom: 2px solid #444444;
+    }
+    /* 날짜와 기간 사이 두 줄 구분선 */
+    .etf-table th.sep, .etf-table td.sep {
+        border-left: 5px double #888888;
+    }
+  </style>'''
 
-#########################################################################
-
-  html = '<table class="etf-table"><thead><tr><th>항목</th>'
+  html += '<table class="etf-table"><thead><tr><th>항목</th>'
 
   for col in col_order:
     cls = 'class="sep"' if col == '1W' else ''
