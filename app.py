@@ -244,7 +244,16 @@ stock_list = [
     {
         "item": "나스닥",
         "code": "IXIC",
-        "url": "https://ssl.pstatic.net/imgfinance/chart/world/continent/NAS@IXIC.png",}]
+        "url": "https://ssl.pstatic.net/imgfinance/chart/world/continent/NAS@IXIC.png",},
+    {
+        "item": "S&P",
+        "code": "US500",
+        "url": "https://t1.daumcdn.net/media/finance/chart/us/daumstock-mini/d/SP500.png",},
+    {
+        "item": "Dallor",
+        "code": "USD/KRW",
+        "url": "https://t1.daumcdn.net/media/finance/chart/kr/daumforex/d/KRWUSD.png",},  
+]
 
 
 for info in stock_list:
