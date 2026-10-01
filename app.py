@@ -250,7 +250,7 @@ stock_list = [
         "code": "US500",
         "url": "https://t1.daumcdn.net/media/finance/chart/us/daumstock-mini/d/SP500.png",},
     {
-        "item": "Dallor",
+        "item": "달러",
         "code": "USD/KRW",
         "url": "https://t1.daumcdn.net/media/finance/chart/kr/daumforex/d/KRWUSD.png",},  
 ]
