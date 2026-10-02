@@ -81,26 +81,23 @@ def build_table_html(df):
     )
 
   col_order = list(display_10['Date']) + ['1W', '2W', '3W', '1M', '2M']
-  html = '''<style>
-    .etf-table {
-        border: 2px solid #444444; /* 테이블 바깥 테두리 */
-        border-collapse: collapse;
-    }
-    .etf-table th:first-child, 
-    .etf-table td.row-label {
-        border-right: 2px solid #444444;
-    }
-    /* 헤더(첫 줄) 아래쪽에 굵은 선 추가 */
-    .etf-table thead th {
-        border-bottom: 2px solid #444444;
-    }
-    /* 날짜와 기간 사이 두 줄 구분선 */
-    .etf-table th.sep, .etf-table td.sep {
-        border-left: 5px double #888888;
-    }
-  </style>'''
+  html = """<head><meta charset="utf-8"><style>
+        body {background:#f4f4f4; font-family:'Malgun Gothic'; margin:0; padding:10px;}
+        .container {width:98%; margin:auto; background:white; padding:10px; border-radius:10px; box-shadow:0 0 5px rgba(0,0,0,0.1);}
+        
+        h1 {text-align:center; margin-top:5px; margin-bottom:10px; font-size:22px;} 
+        .img-container {display:flex; justify-content:center; gap:10px; margin-bottom:10px; flex-wrap:nowrap;}
+        .img-box {width:32%; text-align:center; background:#fafafa; border:1px solid #ddd; border-radius:8px; padding:5px;}
+        .img-box img {width:100%; border-radius:5px;}
+        .caption {margin-top:5px; font-size:12px; font-weight:bold; color:#333;}
 
-  html += '<table class="etf-table"><thead><tr><th>항목</th>'
+        .T-table {border-collapse:collapse; width:100%; margin-bottom:15px; font-size:16px;}
+        .T-table th, .T-table td {border:1px solid #ddd; padding:4px 6px; text-align:center;}
+        .T-table th {background:#eee;}
+        .T-table td.row-label {font-weight:bold; background:#fafafa;}
+        .T-table td.sep, .T-table th.sep {border-left:2px solid #999;}
+    </style></head><body><div class="container">"""
+  html += '<table class="T-table"><thead><tr><th>항목</th>'
 
   for col in col_order:
     cls = 'class="sep"' if col == '1W' else ''
