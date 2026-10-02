@@ -289,12 +289,12 @@ for info in stock_list:
         # 우측: 테이블 (동일하게 높이 350px 및 스크롤 지정)
         with col_right:
             table_html = build_table_html(df_data)
-            styled_table_html = f"""
-            <div style="width: 100%; height: 150px; max-height: 150px; overflow-y: auto; border: 1px solid #e0e0e0; border-radius: 4px; padding: 5px; box-sizing: border-box;">
-                {table_html}
-            </div>
-            """
-            st.markdown(styled_table_html, unsafe_allow_html=True)        
+            # styled_table_html = f"""
+            # <div style="width: 100%; height: 150px; max-height: 150px; overflow-y: auto; border: 1px solid #e0e0e0; border-radius: 4px; padding: 5px; box-sizing: border-box;">
+            #     {table_html}
+            # </div>
+            # """
+            # st.markdown(styled_table_html, unsafe_allow_html=True)        
         
         # 2. Trend 그래프 렌더링
         trend(item_name, item_code)
