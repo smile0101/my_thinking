@@ -294,7 +294,7 @@ for info in stock_list:
             #     {table_html}
             # </div>
             # """
-            # st.markdown(styled_table_html, unsafe_allow_html=True)        
+            st.markdown(styled_table_html, unsafe_allow_html=True)        
         
         # 2. Trend 그래프 렌더링
         trend(item_name, item_code)
