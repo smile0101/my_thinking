@@ -257,16 +257,35 @@ stock_list = [
         "item": "나스닥",
         "code": "IXIC",
         "url": "https://ssl.pstatic.net/imgfinance/chart/world/continent/NAS@IXIC.png",},
+
     {
         "item": "S&P",
         "code": "US500",
-        "url": "https://t1.daumcdn.net/media/finance/chart/us/daumstock-mini/d/SP500.png",},
+        "url": "https://t1.daumcdn.net/media/finance/chart/us/daumstock-mini/d/SP500.png",},  
+
     {
         "item": "달러",
         "code": "USD/KRW",
         "url": "https://t1.daumcdn.net/media/finance/chart/kr/daumforex/d/KRWUSD.png",},  
-]
 
+   {
+        "item": "Glod",
+        "code": "GC=F",
+        "url": "https://ssl.pstatic.net/imgfinance/chart/marketindex/area/month/CMDT_GC.png", },
+
+    {
+        "item": "Silver",
+        "code": "SI=F",
+        "url": "", },
+   {
+        "item": "구리",
+        "code": "HG=F",
+        "url": "https://ssl.pstatic.net/imgfinance/chart/marketindex/area/month/CMDT_CDY.png", },
+
+    {
+        "item": "WTI",
+        "code": "CL=F",
+        "url": "https://ssl.pstatic.net/imgfinance/chart/marketindex/area/month/OIL_CL.png", },]
 
 for info in stock_list:
     item_name = info["item"]
@@ -280,17 +299,18 @@ for info in stock_list:
 
     if df_data is not None and not df_data.empty:
 
-        col_left, col_right = st.columns([1,2.5], gap="medium")
+        col_left, col_right = st.columns([1, 2], gap="medium")
         
         # 좌측: 이미지 (높이를 350px로 고정하고 박스 안에 맞춤)
         with col_left:
-             st.markdown( f""" <div style="width: 100%;">  <img src="{item_url}" style="width: 550px; height: 150px; object-fit: fill;" /> </div> """,
-            unsafe_allow_html=True )
-        # 우측: 테이블 (동일하게 높이 350px 및 스크롤 지정)
+ 
+            st.markdown( f""" <div style="width: 100%;">  <img src="{item_url}" style="width: 600px; height: 150px; object-fit: fill;" /> </div> """,
+                unsafe_allow_html=True )
+  
         with col_right:
             table_html = build_table_html(df_data)
             styled_table_html = f"""
-            <div style="width: 100%; height: 150px; max-height: 150px; overflow-y: auto; border: 1px solid #e0e0e0; border-radius: 4px; padding: 5px; box-sizing: border-box;">
+            <div 
                 {table_html}
             </div>
             """
@@ -309,7 +329,10 @@ keys = {
     '투자자(코스닥)' : 'https://ssl.pstatic.net/imgfinance/chart/sise/trendUitradeDayKOSDAQ.png?sid=1697448286377',
     '증시자금' : 'https://ssl.pstatic.net/imgfinance/chart/sise/deposit_customer_deposit.png',
     'BTC(1일)' : 'https://imagechart.upbit.com/d/mini/BTC.png',
-}
+    '엔화(1개월)' : 'https://ssl.pstatic.net/imgfinance/chart/marketindex/area/month/FX_JPYKRW.png',  
+    '일본중시': 'https://ssl.pstatic.net/imgfinance/chart/world/month3/NII@NI225.png',
+    '상해증시' : 'https://ssl.pstatic.net/imgfinance/chart/world/month3/SHS@000001.png',
+    '인도증시'  : 'https://ssl.pstatic.net/imgfinance/chart/world/month3/INI@BSE30.png'}
 
 items = list(keys.items()) # (이름, URL) 튜플 리스트로 변환
 cols_per_row = 4
@@ -321,3 +344,15 @@ for i in range(0, len(items), cols_per_row):
         with cols[idx]: 
             st.caption(f"**{name}**") # 이미지 위에 제목 표시
             st.image(url, width='stretch') #`width='content'
+
+#########################################################################
+
+gold  = 'https://m.stock.naver.com/marketindex/metals/M04020000'
+sil = 'https://m.stock.naver.com/marketindex/metals/SIcv1'
+wti = 'https://m.stock.naver.com/marketindex/energy/CLcv1'
+
+
+            # if item_name in ('Glod','Silver','WTI') :
+            #    st.markdown(f""" <div class="caption"> <a href="{item_url}" target="_blank">{item_name} </a></div>""",unsafe_allow_html=True )
+
+
