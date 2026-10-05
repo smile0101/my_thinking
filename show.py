@@ -11,13 +11,22 @@ st.set_page_config(page_title="Today", layout="wide")
 MONGO_URL = st.secrets["mongo_uri"]
 client = MongoClient(MONGO_URL, serverSelectionTimeoutMS=5000, tls=True, tlsInsecure=True)
 col = client["Target"]["target"]
-dfv = pd.DataFrame(col.find({}, {"_id": 0}))
+df_portfolio  = pd.DataFrame(col.find({}, {"_id": 0}))
 
-MM = client["stock"]["stock"]
-memo_docs = list(MM.find({}, {"_id": 0, "코드": 1, "Memo": 1}))
-memo_map = {str(d["코드"]): d.get("Memo", "") for d in memo_docs if "코드" in d}
 
-###############################################################################################
+@st.cache_data(ttl=3600)
+def get_recent(code):
+    try:
+        df = fdr.DataReader(str(code)).tail(5).reset_index()
+        if 'Change' in df.columns:
+            df['Change'] = round(df['Change'] * 100, 1)
+        else:
+            df['Change'] = 0.0
+        return df
+    except Exception as e:
+        return None
+
+# 3. 포맷팅 함수들
 def format1(val):
     if val > 0:
         return f'<span style="color:#d63031; font-weight:bold;">▲{val:.1f}%</span>'
@@ -26,62 +35,87 @@ def format1(val):
     else:
         return '<span>0.0%</span>'
 
-
-def color_format(val):
+def format(val):
     try:
         v = float(val)
         color = "red" if v > 0 else "blue"
-        text = f"{v:,.1f}"
+        text = f"{v:,.0f}"
     except (TypeError, ValueError):
         color = "black"
-        text = val
+        text = str(val)
     return f'<span style="color:{color}">{text}</span>'
 
+# 스트림릿 화면 구성
+st.subheader("📈 Today")
 
-@st.cache_data(ttl=600)
-def get_recent(code):
-    df = fdr.DataReader(code).tail(5).reset_index()
-    df['Change'] = round(df['Change'] * 100, 1)
-    return df
+# 구분(구분별 그룹화)
+groups = df_portfolio['구분'].unique()
 
+for group in groups:
+    st.markdown(f"#### 📌 {group}")
+    group_df = df_portfolio[df_portfolio['구분'] == group]
+    
+    for _, row in group_df.iterrows():
+        item = row.get('종목', '')
+        code = row.get('코드', '')
+        
+        # 값이 비어있거나 NaN일 경우 체크
+        buy = row.get('buy', 0)
+        if pd.isna(buy):
+            buy = 0
+            
+        vol = row.get('수량', 0)
+        if pd.isna(vol):
+            vol = 0
+            
+        MM = row.get('Memo', '')
+        if pd.isna(MM):
+            MM = ''
+        
+        df_recent = get_recent(code)
+        
+        if df_recent is not None and not df_recent.empty:
+            CH = df_recent['Change'].iloc[-1]
+            CC = df_recent['Close'].iloc[-1]
+            CH_html = format1(CH) if not pd.isna(CH) else ""
+            
+            # buy나 vol이 없거나 0일 때 nan 대신 공백("") 또는 빈 값으로 처리
+            if buy > 0 and vol > 0:
+                Cha = CC - buy
+                BC = Cha * vol / 10000
+                INV = buy * vol / 10000
+                RR = round((CC - buy) / buy * 100, 1)
+                RD = format1(RR)
+                BC_html = format(BC)
+                buy_str = f"매수 : {buy:,.0f}원 &nbsp;&nbsp;|&nbsp;&nbsp;"
+                inv_vol_str = f"[ {BC_html} : {INV:,.0f} / {vol:,.0f}주  ]"
+                rd_str = f"수익률: {RD}"
+            else:
+                RD = ""
+                BC_html = ""
+                buy_str = ""
+                inv_vol_str = ""
+                rd_str = ""
+            
+            row_html = f"""
+            <div class="header-line" style="line-height: 1.6;">
+                <span style="font-size:24px;font-weight:bold;">ㅇ {item} : </span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                <span style="font-size:20px;font-weight:bold;">{CC:,.0f}원 ({CH_html})&nbsp;&nbsp;
+                {buy_str}{rd_str} {inv_vol_str}</span>
+            </div>
+            <div style="margin: 8px 0;">
+                &nbsp;&nbsp;&nbsp;<a href="https://webchart.thinkpool.com/2021ReNew/CS5MinBong/A{code}.png" target="_blank" style="padding:3px 9px;border:1px solid #bbb;border-radius:4px;text-decoration:none;font-size:12px;margin:2px 10px 2px 0;display:inline-block;">Day</a>
+                <a href="https://kr.tradingview.com/chart/Y3Tq45pg/?symbol=KRX%3A{code}" target="_blank" style="padding:3px 9px;border:1px solid #bbb;border-radius:4px;text-decoration:none;font-size:12px;margin:2px 10px 2px 0;display:inline-block;">Tr</a>
+                <a href="https://news.google.com/search?q={quote(str(item))}&hl=ko&gl=KR&ceid=KR:ko" target="_blank" style="padding:3px 9px;border:1px solid #bbb;border-radius:4px;text-decoration:none;font-size:12px;margin:2px 10px 2px 0;display:inline-block;">Google</a>
+                <span style="font-size:18px;font-weight:bold;">{MM}</span>
+            </div>
+            """
 
-st.subheader("📈 관심 종목 현황")
-memo_list = []
-for idx, row in dfv.iterrows():
-    item, code, 구분, buy = row.종목, row.코드, row.구분, row.buy
-    df = get_recent(code)
-    sch = df['Change'].sum()
-    SCHD = format1(sch)
-    CC = df['Close'].iloc[-1]
-    CD = f"{CC:,.0f}"
-    BD = f"{buy:,.0f}"
-    ch = " / ".join(df["Change"].iloc[-5:].apply(color_format))
-    RR = round((CC - buy) / buy * 100, 1)
-    RD = format1(RR)
-    memo_val = memo_map.get(code, "")
-    if memo_val:
-        memo_list.append({"종목": item, "메모": memo_val})
+            st.markdown(row_html, unsafe_allow_html=True)
 
-    st.markdown(f"##### 📌{item}_{구분}") 
-    col1, col2 = st.columns(2)
-    with col1:
-        st.image(f"https://ssl.pstatic.net/imgfinance/chart/item/area/week/{code}.png")  
-        st.markdown( f' [{ch}]_&nbsp;&nbsp;{SCHD}', unsafe_allow_html=True)
-        st.markdown(f'현재:{CD} / {BD}원, ({format1(RR)}) '
-            f'<span style="margin-left:10px;"></span>'
-            f'<a href="https://stock.naver.com/domestic/stock/{code}/price" target="_blank">네이버 </a>',  unsafe_allow_html=True )
-
-    with col2:
-        st.image(f"https://webchart.thinkpool.com/2021ReNew/stock1day_volume/A{code}.png")
-        st.markdown(
-            f'<a href="https://t1.daumcdn.net/media/finance/chart/kr/daumstock/d/A{code}.png" target="_blank" style="margin-right:18px;">일일</a>'
-            f' / <a href="https://www.thinkpool.com/item/{code}" target="_blank" style="margin-right:18px;">Think</a>'
-            f' / <a href="https://kr.tradingview.com/chart/Y3Tq45pg/?symbol=KRX%3A{code}" target="_blank" style="margin-right:18px;">Tr</a>'
-            f' / <a href="https://news.google.com/search?q={quote(item)}&hl=ko&gl=KR&ceid=KR:ko" target="_blank">{item} 뉴스</a>',
-            unsafe_allow_html=True  )
-
-if memo_list:
+        else:
+            st.markdown(f"**{item}** ({code}) - 데이터를 불러오지 못했습니다.", unsafe_allow_html=True)
+            
     st.markdown("---")
-    for r in memo_list:
-        st.markdown(f"**{r['종목']}** : {r['메모']}")
+
 
