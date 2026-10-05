@@ -13,7 +13,6 @@ client = MongoClient(MONGO_URL, serverSelectionTimeoutMS=5000, tls=True, tlsInse
 col = client["Target"]["target"]
 df_portfolio  = pd.DataFrame(col.find({}, {"_id": 0}))
 
-
 @st.cache_data(ttl=3600)
 def get_recent(code):
     try:
