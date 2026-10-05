@@ -25,7 +25,6 @@ def get_recent(code):
     except Exception as e:
         return None
 
-# 3. 포맷팅 함수들
 def format1(val):
     if val > 0:
         return f'<span style="color:#d63031; font-weight:bold;">▲{val:.1f}%</span>'
