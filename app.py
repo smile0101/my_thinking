@@ -534,10 +534,10 @@ stock_list = [
         "Tr" : 'WTI'},
 
    {
-        "item": "Glod",
+        "item": "G0ld",
         "code": "GC=F",
         "url": "https://t1.daumcdn.net/media/finance/chart/kr/commodity-mini/m/GOLD.png", 
-        "Tr" : 'GLOD '},
+        "Tr" : 'GOLD '},
 
     {
         "item": "Silver",
