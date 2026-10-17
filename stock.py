@@ -584,9 +584,9 @@ def showV( item, d ):
 
 ##################################################################
 
-    ax7.plot(d['Date'], d['외국인'], label='외국인', marker='o', linewidth=1.5, markersize=4, color='red')
-    ax7.plot(d['Date'], d['기관'], label='기관', marker='o', linewidth=1.5, markersize=4, color='blue')
-    ax7.plot(d['Date'], d['개인'], label='개인', marker='o', linewidth=1.5, markersize=4, color='green')
+    ax7.plot(d['Date'], d['외국인'], label='F', marker='o', linewidth=1.5, markersize=4, color='red')
+    ax7.plot(d['Date'], d['기관'], label='G', marker='o', linewidth=1.5, markersize=4, color='blue')
+    ax7.plot(d['Date'], d['개인'], label='I', marker='o', linewidth=1.5, markersize=4, color='green')
     ax7.axhline(y=d['fo'].iloc[-1] , color="red", linestyle=":", linewidth=1, alpha=0.8)
     ax7.axhline(y=d['go'].iloc[-1] , color="blue", linestyle=":", linewidth=1, alpha=0.8)
     ax7.axhline(0, color='gray', linewidth=1, linestyle='-')
@@ -703,7 +703,7 @@ def plot_trend_subplot(ax, df, close_prices, order_val, item):
     ax.grid(True, axis="x", linestyle="--", alpha=0.5)
     ax.set_yticklabels([])
 
-    sub_title = f"{order_val}. 저점: {latest_low:,.0f} | 고점: {latest_high:,.0f} | Cha: {cha_value}%"
+    sub_title = f"{order_val}. LL: {latest_low:,.0f} | HH: {latest_high:,.0f} | Cha: {cha_value}%"
     ax.set_title(sub_title, fontsize=10, pad=10)
 
 
