@@ -106,8 +106,8 @@ item = st.session_state['selected_name']  ## item
 def load_data(code, T=60, N =1):
     try :
         day = (datetime.now() - timedelta(days=150)).strftime("%Y%m%d") #300
-        # dd = fdr.DataReader(code, day).reset_index()
-        dd = fdr.DataReader(code, '20260301', '20261013').reset_index()
+        dd = fdr.DataReader(code, day).reset_index()
+        # dd = fdr.DataReader(code, '20260301', '20261013').reset_index()
         if 'index' in dd.columns:
             dd = dd.rename(columns={'index': 'Date'})
         if 'Change' in dd.columns:
