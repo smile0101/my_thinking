@@ -560,7 +560,7 @@ def showV( item, d ):
     d['S5_detail'] = d['S5'].clip(lower=89.7)
     d['S10_detail'] = d['S10'].clip(lower=89.7)
     
-    ax4.plot(d['Date'], d['MA5_d'], label='MA5변화', color='green', linestyle='-', alpha=0.5)
+    ax4.plot(d['Date'], d['MA5_d'], label='MA5', color='green', linestyle='-', alpha=0.5)
     ax4.legend( loc='upper left', fontsize=12, frameon=False )
     ax4.axhline(y=0 , color="gray", linestyle=":", linewidth=2, alpha=0.7)
     for j in range(len(d)):
