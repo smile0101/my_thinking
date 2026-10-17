@@ -565,6 +565,7 @@ def showV( item, d ):
     ax4.axhline(y=0 , color="gray", linestyle=":", linewidth=2, alpha=0.7)
     for j in range(len(d)):
         ax4.axvline(x=d['Date'].iloc[j], color='lightgray', linestyle=':', linewidth=1)
+    ax4.tick_params(axis='y', labelsize=6)
     ax4.tick_params(axis='x', rotation=45)
     for label in ax4.get_xticklabels():
         label.set_fontsize(12)  ## X좌표 크기
@@ -584,12 +585,12 @@ def showV( item, d ):
 
 ##################################################################
 
-    ax7.plot(d['Date'], d['외국인'], label='F', marker='o', linewidth=1.5, markersize=4, color='red')
-    ax7.plot(d['Date'], d['기관'], label='G', marker='o', linewidth=1.5, markersize=4, color='blue')
-    ax7.plot(d['Date'], d['개인'], label='I', marker='o', linewidth=1.5, markersize=4, color='green')
-    ax7.axhline(y=d['fo'].iloc[-1] , color="red", linestyle=":", linewidth=1, alpha=0.8)
-    ax7.axhline(y=d['go'].iloc[-1] , color="blue", linestyle=":", linewidth=1, alpha=0.8)
-    ax7.axhline(0, color='gray', linewidth=1, linestyle='-')
+    ax7.plot(d['Date'], d['외국인'], label='F', marker='o', linewidth=1, markersize=4, color='red',linestyle=":")
+    ax7.plot(d['Date'], d['기관'], label='G', marker='o', linewidth=1, markersize=4, color='blue',linestyle=":")
+    ax7.plot(d['Date'], d['개인'], label='I', marker='o', linewidth=1, markersize=4, color='green',linestyle=":")
+    ax7.axhline(y=d['fo'].iloc[-1] , color="red", linestyle="-", linewidth=1.5, alpha=0.8)
+    ax7.axhline(y=d['go'].iloc[-1] , color="blue", linestyle="-", linewidth=1.5, alpha=0.8)
+    ax7.axhline(0, color='gray', linewidth=1.5, linestyle='-')
     for j in range(len(d)):
         ax7.axvline(x=d['Date'].iloc[j], color='lightgray', linestyle=':', linewidth=1)
     ax7.legend(loc='upper left', fontsize=10, frameon=False)
