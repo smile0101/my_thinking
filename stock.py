@@ -368,7 +368,7 @@ url_fn    = f"https://wcomp.fnguide.com/?c_id=AA&menu_type=01&cmp_cd={code}"
 url_min   = f'https://m.stock.naver.com/fchart/domestic/stock/{code}'
 url_ggl   = f"https://news.google.com/search?q={quote(item)}&hl=ko&gl=KR&ceid=KR:ko"
 
-row_link = st.columns([0.5, 6.5, 3, 1])
+row_link = st.columns([0.1, 3.5, 6, 1])
 with row_link[1]:
     st.markdown(
         f'<a href="{url_think}" target="_blank" style="{btn}">Think</a>'
