@@ -16,58 +16,17 @@ import requests
 from io import StringIO
 from scipy.signal import argrelextrema
 import platform
+from pathlib import Path
 
-# 시스템에 설치된 폰트 이름 목록 가져오기
-font_list = [f.name for f in fm.fontManager.ttflist]
+FONT_PATH = Path(__file__).parent / "fonts" / "NanumGothic.ttf"
 
-# OS별 한글 폰트 후보군
-if platform.system() == 'Windows':
-    candidates = ['Malgun Gothic', 'NanumGothic', 'Gulim']
-elif platform.system() == 'Darwin':  # Mac
-    candidates = ['AppleGothic', 'Apple SD Gothic Neo', 'NanumGothic']
-else:  # Linux (Streamlit Cloud 등)
-    candidates = ['NanumGothic', 'NanumBarunGothic', 'DejaVu Sans']
+fm.fontManager.addfont(str(FONT_PATH))
+font_name = fm.FontProperties(fname=str(FONT_PATH)).get_name()
 
-# 설치된 폰트 중 첫 번째로 매칭되는 폰트 적용
-applied_font = None
-for font in candidates:
-    if font in font_list:
-        plt.rcParams['font.family'] = font
-        applied_font = font
-        break
+plt.rcParams['font.family'] = font_name
 matplotlib.rcParams['axes.unicode_minus'] = False
 
 st.set_page_config(page_title="주식", layout="wide")
-
-def set_korean_font():
-    plt.rcParams['axes.unicode_minus'] = False
-
-    font_candidates = [
-        "/usr/share/fonts/truetype/nanum/NanumGothic.ttf",  # Linux(Streamlit Cloud)
-        "C:/Windows/Fonts/malgun.ttf",                       # Windows 로컬
-        "/tmp/NanumGothic.ttf",                               # 다운로드 캐시
-    ]
-
-    for path in font_candidates:
-        if os.path.exists(path):
-            fm.fontManager.addfont(path)
-            font_name = fm.FontProperties(fname=path).get_name()
-            plt.rc('font', family=font_name)
-            return
-
-    # 로컬에 없으면 다운로드 시도
-    font_path = "/tmp/NanumGothic.ttf"
-    font_url = "https://github.com/googlefonts/nanum-gothic/raw/main/fonts/ttf/NanumGothic.ttf"
-    try:
-        import urllib.request
-        urllib.request.urlretrieve(font_url, font_path)
-        fm.fontManager.addfont(font_path)
-        font_name = fm.FontProperties(fname=font_path).get_name()
-        plt.rc('font', family=font_name)
-    except Exception as e:
-        print(f"폰트 다운로드 실패: {e}")
-
-set_korean_font()
 
 @st.cache_resource
 def get_mongo_client():
