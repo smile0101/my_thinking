@@ -102,7 +102,6 @@ if 'selected_code' not in st.session_state:
 code = st.session_state['selected_code']  ## code
 item = st.session_state['selected_name']  ## item
 
-
 def load_data(code, T=60, N =1):
     try :
         day = (datetime.now() - timedelta(days=150)).strftime("%Y%m%d") #300
@@ -390,15 +389,7 @@ with row_link[3]:
         update_field(code, 'Memo', memo_val)
         st.success("저장되었습니다.")
         st.rerun()
-################################### 투자자/ 매몰도  ########################################################
 
-cols1 = st.columns(3)
-cols1[0].image(f'https://webchart.thinkpool.com/2021ReNew/CumulationSelling/A{code}.png',
-               use_container_width=True, caption="투자자")
-cols1[1].image(f'https://ssl.pstatic.net/imgfinance/chart/item/area/week/{code}.png',
-               use_container_width=True, caption="5일 주가")
-cols1[2].image(f'https://webchart.thinkpool.com/2021ReNew/stock1day_volume/A{code}.png',
-               use_container_width=True, caption="매몰도")
 
 ####################################### 그래프 ##################################################################
 def showV( item, d ):
@@ -583,7 +574,7 @@ def showV( item, d ):
     ax6.tick_params(axis='y', labelsize=6)
 
 
-##################################################################
+    ##################################################################
 
     ax7.plot(d['Date'], d['외국인'], label='F', marker='o', linewidth=1, markersize=4, color='red',linestyle=":")
     ax7.plot(d['Date'], d['기관'], label='G', marker='o', linewidth=1, markersize=4, color='blue',linestyle=":")
@@ -623,6 +614,16 @@ else:
     # ── 그래프 렌더링 ──────────────────────────────────
     st.pyplot(fig)
     plt.close(fig)  # 메모리 누수 방지 (matplotlib figure는 명시적으로 닫아줘야 함)
+
+################################### 투자자/ 매몰도  ########################################################
+
+cols1 = st.columns(3)
+cols1[0].image(f'https://webchart.thinkpool.com/2021ReNew/CumulationSelling/A{code}.png',
+               use_container_width=True, caption="투자자")
+cols1[1].image(f'https://ssl.pstatic.net/imgfinance/chart/item/area/week/{code}.png',
+               use_container_width=True, caption="5일 주가")
+cols1[2].image(f'https://webchart.thinkpool.com/2021ReNew/stock1day_volume/A{code}.png',
+               use_container_width=True, caption="매몰도")
 
 #############################        Trend       ##########################################
 
