@@ -16,14 +16,25 @@ import requests
 from io import StringIO
 from scipy.signal import argrelextrema
 import platform
-from matplotlib import font_manager, rc
 
+# 시스템에 설치된 폰트 이름 목록 가져오기
+font_list = [f.name for f in fm.fontManager.ttflist]
+
+# OS별 한글 폰트 후보군
 if platform.system() == 'Windows':
-    rc('font', family='Malgun Gothic')
+    candidates = ['Malgun Gothic', 'NanumGothic', 'Gulim']
 elif platform.system() == 'Darwin':  # Mac
-    rc('font', family='AppleGothic')
-else:
-    rc('font', family='NanumGothic')
+    candidates = ['AppleGothic', 'Apple SD Gothic Neo', 'NanumGothic']
+else:  # Linux (Streamlit Cloud 등)
+    candidates = ['NanumGothic', 'NanumBarunGothic', 'DejaVu Sans']
+
+# 설치된 폰트 중 첫 번째로 매칭되는 폰트 적용
+applied_font = None
+for font in candidates:
+    if font in font_list:
+        plt.rcParams['font.family'] = font
+        applied_font = font
+        break
 matplotlib.rcParams['axes.unicode_minus'] = False
 
 st.set_page_config(page_title="주식", layout="wide")
