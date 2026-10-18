@@ -15,28 +15,42 @@ from urllib.parse import quote
 import requests
 from io import StringIO
 from scipy.signal import argrelextrema
-import platform
-font_list = [f.name for f in fm.fontManager.ttflist]
 
-# OS별 한글 폰트 후보군
-if platform.system() == 'Windows':
-    candidates = ['Malgun Gothic', 'NanumGothic', 'Gulim']
-elif platform.system() == 'Darwin':  # Mac
-    candidates = ['AppleGothic', 'Apple SD Gothic Neo', 'NanumGothic']
-else:  # Linux (Streamlit Cloud 등)
-    candidates = ['NanumGothic', 'NanumBarunGothic', 'DejaVu Sans']
-
-# 설치된 폰트 중 첫 번째로 매칭되는 폰트 적용
-applied_font = None
-for font in candidates:
-    if font in font_list:
-        plt.rcParams['font.family'] = font
-        applied_font = font
-        break
 matplotlib.rcParams['axes.unicode_minus'] = False
 
 st.set_page_config(page_title="주식", layout="wide")
 
+def set_korean_font():
+    plt.rcParams['axes.unicode_minus'] = False
+
+    font_candidates = [
+        "/usr/share/fonts/truetype/nanum/NanumGothic.ttf",  # Linux(Streamlit Cloud)
+        "C:/Windows/Fonts/malgun.ttf",                       # Windows 로컬
+        "/tmp/NanumGothic.ttf",                               # 다운로드 캐시
+    ]
+
+    for path in font_candidates:
+        if os.path.exists(path):
+            fm.fontManager.addfont(path)
+            font_name = fm.FontProperties(fname=path).get_name()
+            plt.rc('font', family=font_name)
+            return
+
+    # 로컬에 없으면 다운로드 시도
+    font_path = "/tmp/NanumGothic.ttf"
+    font_url = "https://github.com/googlefonts/nanum-gothic/raw/main/fonts/ttf/NanumGothic.ttf"
+    try:
+        import urllib.request
+        urllib.request.urlretrieve(font_url, font_path)
+        fm.fontManager.addfont(font_path)
+        font_name = fm.FontProperties(fname=font_path).get_name()
+        plt.rc('font', family=font_name)
+    except Exception as e:
+        print(f"폰트 다운로드 실패: {e}")
+
+set_korean_font()
+
+#######################################################################
 @st.cache_resource
 def get_mongo_client():
     MONGO_URL = st.secrets["mongo_uri"]
@@ -459,7 +473,7 @@ def showV( item, d ):
     ax4 = fig.add_subplot(gs[3], sharex=ax1) # x축 공유
     ax7 = fig.add_subplot(gs[4], sharex=ax1) # x축 공유
 
-    ax1.set_title(f"{item}{code}",fontsize=8)
+    ax1.set_title(f"{code}",fontsize=8)
     ##################################################################
     ax1.plot(d['Date'], d['Close'], linewidth=1.4, marker="o",label='Close', color ="red")
     ax1.plot(d['Date'], d['High'], '--', linewidth=1.0)
