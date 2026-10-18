@@ -472,7 +472,7 @@ def showV( item, d ):
     ax4 = fig.add_subplot(gs[3], sharex=ax1) # x축 공유
     ax7 = fig.add_subplot(gs[4], sharex=ax1) # x축 공유
 
-    ax1.set_title(f"{code}")
+    ax1.set_title(f"{item}{code}",fontsize=8)
     ##################################################################
     ax1.plot(d['Date'], d['Close'], linewidth=1.4, marker="o",label='Close', color ="red")
     ax1.plot(d['Date'], d['High'], '--', linewidth=1.0)
