@@ -484,10 +484,10 @@ def showV( item, d ):
 
     ax1.set_title(f"{code}")
     ##################################################################
-    ax1.plot(d['Date'], d['Close'], linewidth=1.4, marker="o",label='Close')
+    ax1.plot(d['Date'], d['Close'], linewidth=1.4, marker="o",label='Close', color ="red")
     ax1.plot(d['Date'], d['High'], '--', linewidth=1.0)
     ax1.plot(d['Date'], d['Low'], '--', linewidth=1.0)
-    ax1.axhline(round(d['Close'].mean(),1), color='red', linestyle='--')
+    ax1.axhline(round(d['Close'].mean(),1), color='blue', linestyle='--')
     ax1.plot(min_15_date, min_15, marker='d', color='magenta', markersize=20, zorder=6)
     ax1.axhline(y = max_15, color="#A9ED17", linestyle='--')  
     # for i in range(-7, 0):
@@ -513,7 +513,7 @@ def showV( item, d ):
 
     ##################################################################
     ax2.plot(d['Date'], d['Close'], linestyle='--', color='pink')
-    ax2.plot(d['Date'], d['MA5'], linestyle='-.', color='green', label='MA5')
+    ax2.plot(d['Date'], d['MA5'], linestyle='-', color='green', label='MA5')
     # ax2.plot(d['Date'], d['MA10'], linestyle='-.', color='black', label='MA10')
     ax2.plot(d['Date'], d['MA20'], linestyle='-', color='magenta', label='MA20')
     ax2.plot(d['Date'], d['MA60'], linestyle='-', color='blue', label='MA60')
@@ -535,9 +535,9 @@ def showV( item, d ):
 
     ##################################################################
 
-    ax3.plot(d['Date'], d['pos'],  marker='o', color='lightblue', linestyle='-', linewidth=1.5, markersize=5, label='Position (%)')
-    ax3.plot(d['Date'], d['pos_ma5'], color='darkblue', linestyle='-', linewidth=2.5, label='Position MA5') 
-    ax3.axhline(y=50, color="#ED1762", linestyle='--',linewidth=2, alpha=0.7, label='50% Midpoint')
+    ax3.plot(d['Date'], d['pos'],  marker='o', color='blue', linestyle='-', linewidth=1.8, markersize=5, label='Position (%)')
+    ax3.plot(d['Date'], d['pos_ma5'], color='lightblue', linestyle='-.', linewidth=1.5, label='Position MA5') 
+    ax3.axhline(y=50, color="#ED1762", linestyle='-',linewidth=2, alpha=0.7, label='50% Midpoint')
 
     ax3.scatter(max_date, max_val, color='red', s=100, zorder=5)
     ax3.annotate(f'{max_val:.1f}', (max_date, max_val), textcoords="offset points",  xytext=(0, 10), 
@@ -560,7 +560,7 @@ def showV( item, d ):
     d['S5_detail'] = d['S5'].clip(lower=89.7)
     d['S10_detail'] = d['S10'].clip(lower=89.7)
     
-    ax4.plot(d['Date'], d['MA5_d'], label='MA5', color='green', linestyle='-', alpha=0.5)
+    ax4.plot(d['Date'], d['MA5_d'], label='MA5', color='green', linestyle='-', linewidth = 1.5)
     ax4.legend( loc='upper left', fontsize=12, frameon=False )
     ax4.axhline(y=0 , color="gray", linestyle=":", linewidth=2, alpha=0.7)
     for j in range(len(d)):
@@ -579,7 +579,7 @@ def showV( item, d ):
 
     # 또 다른 보조축 (종가 표시용)
     ax6 = ax4.twinx()
-    ax6.plot(d['Date'], d['Close'], label='종가', linestyle='-', color='black', linewidth=2, alpha=0.6)
+    ax6.plot(d['Date'], d['Close'], label='종가', linestyle='-.', color='black', linewidth=1, alpha=0.5)
     ax6.tick_params(axis='y', labelsize=6)
 
 
