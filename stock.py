@@ -22,6 +22,8 @@ if platform.system() == 'Windows':
     rc('font', family='Malgun Gothic')
 elif platform.system() == 'Darwin':  # Mac
     rc('font', family='AppleGothic')
+else:
+    rc('font', family='NanumGothic')
 matplotlib.rcParams['axes.unicode_minus'] = False
 
 st.set_page_config(page_title="주식", layout="wide")
