@@ -15,7 +15,13 @@ from urllib.parse import quote
 import requests
 from io import StringIO
 from scipy.signal import argrelextrema
+import platform
+from matplotlib import font_manager, rc
 
+if platform.system() == 'Windows':
+    rc('font', family='Malgun Gothic')
+elif platform.system() == 'Darwin':  # Mac
+    rc('font', family='AppleGothic')
 matplotlib.rcParams['axes.unicode_minus'] = False
 
 st.set_page_config(page_title="주식", layout="wide")
