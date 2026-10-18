@@ -16,14 +16,23 @@ import requests
 from io import StringIO
 from scipy.signal import argrelextrema
 import platform
-from pathlib import Path
+font_list = [f.name for f in fm.fontManager.ttflist]
 
-FONT_PATH = Path(__file__).parent / "fonts" / "NanumGothic.ttf"
+# OS별 한글 폰트 후보군
+if platform.system() == 'Windows':
+    candidates = ['Malgun Gothic', 'NanumGothic', 'Gulim']
+elif platform.system() == 'Darwin':  # Mac
+    candidates = ['AppleGothic', 'Apple SD Gothic Neo', 'NanumGothic']
+else:  # Linux (Streamlit Cloud 등)
+    candidates = ['NanumGothic', 'NanumBarunGothic', 'DejaVu Sans']
 
-fm.fontManager.addfont(str(FONT_PATH))
-font_name = fm.FontProperties(fname=str(FONT_PATH)).get_name()
-
-plt.rcParams['font.family'] = font_name
+# 설치된 폰트 중 첫 번째로 매칭되는 폰트 적용
+applied_font = None
+for font in candidates:
+    if font in font_list:
+        plt.rcParams['font.family'] = font
+        applied_font = font
+        break
 matplotlib.rcParams['axes.unicode_minus'] = False
 
 st.set_page_config(page_title="주식", layout="wide")
