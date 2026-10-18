@@ -509,9 +509,9 @@ for info in stock_list:
  
             st.markdown( f""" <div style="width: 100%;">  <img src="{item_url}" style="width: 600px; height: 150px; object-fit: fill;" /> </div> """,
                 unsafe_allow_html=True )
-            st.markdown( f'<div style="font-size: 18px;">&emsp;&emsp; {all_ch} &emsp;&emsp;현재:{CC:,.0f}</div>', unsafe_allow_html=True, )
+            st.markdown( f'<div style="font-size: 18px;">&emsp;&emsp; {all_ch} </div>', unsafe_allow_html=True, )
             ch_combined = f"{format3(CD5)} / {format3(CD20)} / {format3(CD60)}  &emsp;&emsp;{format2(CY)} / {format1(TRR)} "
-            st.markdown( f'<div style="font-size: 18px;"> &emsp;&emsp; {ch_combined}</div>', unsafe_allow_html=True, )
+            st.markdown( f'<div style="font-size: 18px;"> &emsp;&emsp; {ch_combined} &emsp;&emsp;현재:{CC:,.0f}</div>', unsafe_allow_html=True, )
   
         with col_right:
             trend(item_name, item_code)   
