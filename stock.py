@@ -198,11 +198,11 @@ except (TypeError, ValueError):
 CC = dfv['Close'].iloc[-1]
 YY = dfv["Close"].iloc[-2]
 D5 = dfv["MA5"].iloc[-1]
-D10 = dfv["MA10"].iloc[-1]
 D20 = dfv["MA20"].iloc[-1]
+D60 = dfv["MA60"].iloc[-1]
 CD5 = int(D5/CC*100)
-CD10 = int(D10/CC*100)
 CD20 = int(D20/CC*100)
+CD60 = int(D60/CC*100)
 CY = int(CC-YY)
 TRR = (CC-YY)/YY*100
 
@@ -245,7 +245,6 @@ keys = ["1W", "2W", "3W", "1M", "2M"]
 values = [w1, w2, w3, m1, m2]
 
 all_ch = ", ".join( f"{key}: {fmt_cell(v['Change'], 'Change')}" for key, v in zip(keys, values) if v is not None )
-
 
 ############################        Info          ###########################################
 with col[2]:
@@ -379,7 +378,7 @@ with row_link[1]:
         unsafe_allow_html=True
     )
 with row_link[2]:
-    ch_combined = f"{all_ch} &emsp;&emsp; {format3(CD5)} / {format3(CD10)} / {format3(CD20)}  &emsp;&emsp;{format2(CY)} / {format1(TRR)} "
+    ch_combined = f"{all_ch} &emsp;&emsp; {format3(CD5)} / {format3(CD20)} / {format3(CD60)}  &emsp;&emsp;{format2(CY)} / {format1(TRR)} "
     st.markdown( f'<div style="font-size: 18px;">{ch_combined}</div>', unsafe_allow_html=True, )
 
 with row_link[3]:
@@ -590,7 +589,7 @@ def showV( item, d ):
     # 최하단 서브플롯인 ax7에만 X축 레이블 표시 및 회전 설정
     ax7.tick_params(axis='x', rotation=45)
     for label in ax7.get_xticklabels():
-        label.set_fontsize(12)
+        label.set_fontsize(8)
 
     # --- 전체 레이아웃 정렬 ---
     plt.setp(ax1.get_xticklabels(), visible=False)
