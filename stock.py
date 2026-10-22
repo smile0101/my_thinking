@@ -195,8 +195,8 @@ dfc = dfv.tail(15).copy()
 dff = _fetch_naver_frgn_page(code)
 dft = dfc.merge(dff[['dd', '외국인', '기관', '개인', '보유율']], 
                 left_on='Date', right_on='dd', how='left').drop(columns='dd')
-dft['fo'] = dft['외국인'].cumsum()
-dft['go'] = dft['기관'].cumsum()
+dft['fo'] = dft['외국인'].cumsum()/10
+dft['go'] = dft['기관'].cumsum()/10
 cols = ['외국인', '기관', '개인']
 dft[cols] = dft[cols].fillna(0).astype(int)
 dft['보유율'] = dft['보유율'].ffill()
@@ -594,8 +594,8 @@ def showV( item, d ):
     ax7.plot(d['Date'], d['외국인'], label='F', marker='o', linewidth=1, markersize=4, color='red',linestyle=":")
     ax7.plot(d['Date'], d['기관'], label='G', marker='o', linewidth=1, markersize=4, color='blue',linestyle=":")
     ax7.plot(d['Date'], d['개인'], label='I', marker='o', linewidth=1, markersize=4, color='green',linestyle=":")
-    ax7.axhline(y=d['fo'].iloc[-1] , color="red", linestyle="-", linewidth=1.5, alpha=0.8)
-    ax7.axhline(y=d['go'].iloc[-1] , color="blue", linestyle="-", linewidth=1.5, alpha=0.8)
+    ax7.axhline(y=d['fo'].iloc[-2] , color="red", linestyle="-", linewidth=1.5, alpha=0.8)
+    ax7.axhline(y=d['go'].iloc[-2] , color="blue", linestyle="-", linewidth=1.5, alpha=0.8)
     ax7.axhline(0, color='gray', linewidth=1.5, linestyle='-')
     for j in range(len(d)):
         ax7.axvline(x=d['Date'].iloc[j], color='lightgray', linestyle=':', linewidth=1)
