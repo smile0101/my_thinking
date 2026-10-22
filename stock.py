@@ -135,44 +135,59 @@ def load_data(code, T=60, N =1):
         return None
 
 def _fetch_naver_frgn_page(code):
-
-    url = f'https://stock.naver.com/api/domestic/detail/{code}/trend'
-
-    headers = { 'User-Agent': 'Mozilla/5.0',
-        'Referer': f'https://stock.naver.com/domestic/stock/{code}/price' }
-
-    params = { 'tradeType': 'KRX','startIdx': 0, 'pageSize': 100 }
+    url = f'https://stock.naver.com/api/stockSecurity/investor-trend/v2/domestic/{code}'
+    headers = { 
+        'User-Agent': 'Mozilla/5.0',
+        'Referer': f'https://stock.naver.com/domestic/stock/{code}/price' 
+    }
+    params = { 'exchangeType': 'all', 'size': 100 }
 
     try:
         res = requests.get(url, headers=headers, params=params, timeout=10)
         res.raise_for_status()
         data = res.json()
-        fk = pd.DataFrame(data)
+        
+        items = data.get('items', [])
+        if not items:
+            return pd.DataFrame(columns=['날짜', 'dd', '종가', '외국인', '기관', '개인', '보유율'])
+        
+        # 새로운 JSON 구조(items -> krx, 보유율 등)를 데이터프레임용 레코드로 변환
+        records = []
+        for item in items:
+            krx = item.get('krx', {})
+            records.append({
+                '날짜': item.get('localTradedAt'), # 'YYYY-MM-DD' 형식
+                '종가': krx.get('closingPrice'),
+                '외국인': krx.get('foreignNetVolume'),
+                '기관': krx.get('organizationNetVolume'),
+                '개인': krx.get('individualNetVolume'),
+                '보유율': item.get('foreignHoldingRatio')
+            })
+        fk = pd.DataFrame(records)
+        
     except Exception:
-        return pd.DataFrame( columns=['날짜', 'dd', '종가', '외국인', '기관', '개인', '보유율'] )
+        return pd.DataFrame(columns=['날짜', 'dd', '종가', '외국인', '기관', '개인', '보유율'])
 
     if fk.empty:
-        return pd.DataFrame( columns=['날짜', 'dd', '종가', '외국인', '기관', '개인', '보유율'] )
+        return pd.DataFrame(columns=['날짜', 'dd', '종가', '외국인', '기관', '개인', '보유율'])
 
-    # 새 네이버 API → 기존 컬럼명으로 변경
-    fk = fk.rename(columns={ 'bizdate': '날짜', 'closePrice': '종가', 'tradeVolume': '거래량',
-                            'foreignerPureBuyQuant': '외국인', 'organPureBuyQuant': '기관', 'individualPureBuyQuant': '개인', 'frgnHoldRatio': '보유율'})
-
-    fk['날짜'] = pd.to_datetime( fk['날짜'].astype(str), format='%Y%m%d', errors='coerce'  )
+    # 날짜 파싱 (기존 YYYYMMDD에서 YYYY-MM-DD 형식으로 변경됨에 따라 포맷 지정 생략 가능)
+    fk['날짜'] = pd.to_datetime(fk['날짜'], errors='coerce')
 
     # 숫자형 변환
     for c in ['종가', '외국인', '기관', '개인', '보유율']:
         if c in fk.columns:
             fk[c] = pd.to_numeric(fk[c], errors='coerce')
 
-    # 기존 코드와 동일하게 1,000주 단위
+    # 기존 코드와 동일하게 1,000주 단위 변환
     for c in ['외국인', '기관', '개인']:
-        fk[c] = (fk[c] / 1000).round(0).fillna(0).astype(int)
+        if c in fk.columns:
+            fk[c] = (fk[c] / 1000).round(0).fillna(0).astype(int)
 
-    # 기존 dd 형식
+    # 기존 dd 형식 ('MM.DD')
     fk['dd'] = fk['날짜'].dt.strftime('%m.%d')
 
-    fk = fk[['날짜', 'dd', '종가', '외국인', '기관', '개인', '보유율'] ].reset_index(drop=True)
+    fk = fk[['날짜', 'dd', '종가', '외국인', '기관', '개인', '보유율']].reset_index(drop=True)
     return fk
 
 dfv = load_data(code)  ## 데이터
