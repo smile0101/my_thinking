@@ -363,8 +363,8 @@ btn = "padding:3px 9px;border:1px solid #bbb;border-radius:4px;text-decoration:n
 url_think = f'https://www.thinkpool.com/item/{code}'
 url_nv    = f'https://stock.naver.com/domestic/stock/{code}/price'
 url_tr    = f'https://kr.tradingview.com/chart/Y3Tq45pg/?symbol=KRX%3A{code}'
-url_fn    = f"https://wcomp.fnguide.com/?c_id=AA&menu_type=01&cmp_cd={code}"
-url_min   = f'https://m.stock.naver.com/domestic/stock/{code}/total?domesticStockExchange=KRX'
+url_Np    = f'https://m.stock.naver.com/domestic/stock/{code}/total?domesticStockExchange=KRX'
+url_min   = f'https://search.naver.com/search.naver?where=news&query={item}'
 url_ggl   = f"https://news.google.com/search?q={quote(item)}&hl=ko&gl=KR&ceid=KR:ko"
 
 row_link = st.columns([0.01, 3, 6.5, 1])
@@ -373,8 +373,8 @@ with row_link[1]:
         f'<a href="{url_think}" target="_blank" style="{btn}">Think</a>'
         f'<a href="{url_nv}"    target="_blank" style="{btn}">Nv</a>'
         f'<a href="{url_tr}"    target="_blank" style="{btn}">Tr</a>'
-        f'<a href="{url_fn}"    target="_blank" style="{btn}">Fn</a>'
-        f'<a href="{url_min}"   target="_blank" style="{btn}">Np</a>'
+        f'<a href="{url_Np}"    target="_blank" style="{btn}">Np</a>'
+        f'<a href="{url_min}"   target="_blank" style="{btn}">Q</a>'
         f'<a href="{url_ggl}"   target="_blank" style="{btn}">Goog</a>',
         unsafe_allow_html=True
     )
