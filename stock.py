@@ -195,8 +195,8 @@ dfc = dfv.tail(15).copy()
 dff = _fetch_naver_frgn_page(code)
 dft = dfc.merge(dff[['dd', '외국인', '기관', '개인', '보유율']], 
                 left_on='Date', right_on='dd', how='left').drop(columns='dd')
-dft['fo'] = dft['외국인'].cumsum()/10
-dft['go'] = dft['기관'].cumsum()/10
+dft['fo'] = dft['외국인'].cumsum()/3
+dft['go'] = dft['기관'].cumsum()/3
 cols = ['외국인', '기관', '개인']
 dft[cols] = dft[cols].fillna(0).astype(int)
 dft['보유율'] = dft['보유율'].ffill()
