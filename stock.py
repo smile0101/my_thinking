@@ -404,7 +404,15 @@ with row_link[3]:
         update_field(code, 'Memo', memo_val)
         st.success("저장되었습니다.")
         st.rerun()
+################################### 투자자/ 매몰도  ########################################################
 
+cols1 = st.columns(3)
+cols1[0].image(f'https://webchart.thinkpool.com/2021ReNew/CumulationSelling/A{code}.png',
+               use_container_width=True, caption="투자자")
+cols1[1].image(f'https://ssl.pstatic.net/imgfinance/chart/item/area/week/{code}.png',
+               use_container_width=True, caption="5일 주가")
+cols1[2].image(f'https://webchart.thinkpool.com/2021ReNew/stock1day_volume/A{code}.png',
+               use_container_width=True, caption="매몰도")
 
 ####################################### 그래프 ##################################################################
 def showV( item, d ):
@@ -630,15 +638,7 @@ else:
     st.pyplot(fig)
     plt.close(fig)  # 메모리 누수 방지 (matplotlib figure는 명시적으로 닫아줘야 함)
 
-################################### 투자자/ 매몰도  ########################################################
 
-cols1 = st.columns(3)
-cols1[0].image(f'https://webchart.thinkpool.com/2021ReNew/CumulationSelling/A{code}.png',
-               use_container_width=True, caption="투자자")
-cols1[1].image(f'https://ssl.pstatic.net/imgfinance/chart/item/area/week/{code}.png',
-               use_container_width=True, caption="5일 주가")
-cols1[2].image(f'https://webchart.thinkpool.com/2021ReNew/stock1day_volume/A{code}.png',
-               use_container_width=True, caption="매몰도")
 
 #############################        Trend       ##########################################
 
