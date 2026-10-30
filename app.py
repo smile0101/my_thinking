@@ -29,8 +29,24 @@ T_list = [
         "url": "https://stock.naver.com/market/stock/kr/trend/trader"
     },
     {
+        "item": "Think",
+        "url": "https://www.thinkpool.com/"
+    },
+    {
+        "item": "코스피맵",
+        "url": "https://markets.hankyung.com/marketmap/kospi"
+    },
+    {
+        "item": "코스닥맵",
+        "url": "https://markets.hankyung.com/marketmap/kosdaq"
+    },
+    {
         "item": "자금동향",
         "url": "https://stock.naver.com/market/stock/kr/deposit"
+    },
+    {
+        "item": "S&P맵",
+        "url": "https://finviz.com/map.ashx"
     },
     {
         "item": "S&P",
