@@ -394,28 +394,40 @@ for section_name, items in portfolio_data.items():
                         """,
                         unsafe_allow_html=True
                     )
-                
-                # 하단에 분석 버튼과 뉴스 아이콘 2개 배치 (3열 컬럼)
-                btn_col1, btn_col2, btn_col3 = st.columns([2, 1, 1])
-                with btn_col1:
-                    current_active = st.session_state.selected_analysis_by_section.get(section_name)
-                    is_active = (current_active == {"item": name, "code": code})
-                    btn_label = "📊 분석닫기" if is_active else "📊 분석"
+                current_active = st.session_state.selected_analysis_by_section.get(section_name)
+                is_active = (current_active == {"item": name, "code": code})
+                btn_label = "📊 분석닫기" if is_active else "📊 분석"
+
+                with st.container(horizontal=True):
                     if st.button(btn_label, key=f"btn_{code}_{name}_{section_name}"):
                         toggle_analysis(section_name, name, code)
                         st.rerun()
-                with btn_col2:
-                    st.markdown(f'<div style="text-align: center; padding-top: 5px;"><a href="{naver_news_url}" target="_blank" title="네이버 뉴스 검색" style="text-decoration: none; font-size: 1.1em;"> Naver </a></div>', unsafe_allow_html=True)
-                with btn_col3:
-                    st.markdown(f'<div style="text-align: center; padding-top: 5px;"><a href="{google_news_url}" target="_blank" title="구글 뉴스 검색" style="text-decoration: none; font-size: 1.1em;"> Google </a></div>', unsafe_allow_html=True)
-                
+                        
+                    st.markdown(f'<a href="{naver_news_url}" target="_blank" title="네이버 뉴스 검색" style="text-decoration: none; font-size: 1.1em; line-height: 2.5em; padding-left: 5px;">Naver</a>', unsafe_allow_html=True)
+                    st.markdown(f'<a href="{google_news_url}" target="_blank" title="구글 뉴스 검색" style="text-decoration: none; font-size: 1.1em; line-height: 2.5em; padding-left: 5px;">Google</a>', unsafe_allow_html=True)
+
                 st.write("") # 간격 조정
+
+                # btn_col1, btn_col2, btn_col3 = st.columns([2, 1, 1])
+                # with btn_col1:
+                #     current_active = st.session_state.selected_analysis_by_section.get(section_name)
+                #     is_active = (current_active == {"item": name, "code": code})
+                #     btn_label = "📊 분석닫기" if is_active else "📊 분석"
+                #     if st.button(btn_label, key=f"btn_{code}_{name}_{section_name}"):
+                #         toggle_analysis(section_name, name, code)
+                #         st.rerun()
+                # with btn_col2:
+                #     st.markdown(f'<div style="text-align: center; padding-top: 5px;"><a href="{naver_news_url}" target="_blank" title="네이버 뉴스 검색" style="text-decoration: none; font-size: 1.1em;"> Naver </a></div>', unsafe_allow_html=True)
+                # with btn_col3:
+                #     st.markdown(f'<div style="text-align: center; padding-top: 5px;"><a href="{google_news_url}" target="_blank" title="구글 뉴스 검색" style="text-decoration: none; font-size: 1.1em;"> Google </a></div>', unsafe_allow_html=True)
+                
+                # st.write("") # 간격 조정
 
     # 각 섹션(예: [삼성01], [키움W]) 바로 아래에 해당 섹션의 선택된 종목 분석 차트 렌더링
     active_in_section = st.session_state.selected_analysis_by_section.get(section_name)
     if active_in_section:
         st.markdown("---")
-        st.subheader(f"📊 [{section_name}] {active_in_section['item']} 상세 분석 차트")
+        st.subheader(f"📊 {active_in_section['item']}")
         
         with st.spinner(f"{active_in_section['item']} 데이터를 불러오는 중입니다..."):
             df = load_data(active_in_section["code"])
