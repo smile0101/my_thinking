@@ -93,7 +93,7 @@ def parse_portfolio_text(text):
 
 portfolio_data = parse_portfolio_text(t)
 
-st.title("📈 주식 대시보드")
+st.subheader("📈 대시보드")
 
 # 현재가 조회 함수 (캐시 적용)
 @st.cache_data(ttl=300)
