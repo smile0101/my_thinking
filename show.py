@@ -10,7 +10,7 @@ from scipy.signal import find_peaks
 from urllib.parse import quote
 
 # 1. 페이지 설정
-st.set_page_config(page_title="종목", layout="wide")
+st.set_page_config(page_title="오늘", layout="wide")
 
 t = """
 [삼성01]				
