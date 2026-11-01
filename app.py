@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 from scipy.signal import find_peaks
 
-st.set_page_config(page_title="메인", layout="wide")
+st.set_page_config(page_title="지수", layout="wide")
 
 def load_data(code, T=60, N=1):
     try:
@@ -246,6 +246,15 @@ def showV(item, d, T=60):
     return fig
 
 T_list = [
+
+    {"item": "Naver", "url": "https://stock.naver.com/news/flashnews"},
+    {"item": "Daum", "url": "https://m.finance.daum.net/news"},
+    {"item": "증권플러스", "url": "https://newsroom.stockplus.com/breaking-news"},
+    {"item": "한국증권", "url": "https://www.ksdaily.co.kr/news/articleList.html?sc_section_code=S1N1&view_type=sm"},
+    {"item": "이슈종목", "url": "https://www.thinkpool.com/analysis/sise?depth1Code=1&page=1"},
+    {"item": "매일경제", "url": "https://stock.mk.co.kr/news/marketCondition"},
+    {"item": "핀포인트", "url": "https://www.pinpointnews.co.kr/news/articleList.html?sc_sub_section_code=S2N14&view_ty"},
+
     {"item": "코스피 선물", "url": "https://kred.dev/ko/kospi-200-night-futures"},
     {"item": "코스피", "url": "https://m.stock.naver.com/domestic/index/KOSPI/total", "code": "^KS11", "GG" : "KOSPI" },
     {"item": "코스닥", "url": "https://m.stock.naver.com/domestic/index/KOSDAQ/total", "code": "^KQ11", "GG" : "KOSDAQ" },
@@ -265,19 +274,23 @@ T_list = [
     {"item": "엔화", "url": "https://m.stock.naver.com/marketindex/exchange/FX_JPYKRW", "code": "JPY/KRW", "GG" : "JPYKRW"},
     {"item": "실시간", "url": "https://stock.naver.com/market/stock/kr/stocklist/priceTop"},
 ]
+st.subheader("News")
+group1 = T_list[0:7]
+html1 = ' '.join(f'<a href="{d["url"]}" target="_blank" style="text-decoration:none;"><b>🔗 {d["item"]}</b></a>' for d in group1)
+st.markdown(f'<div style="display:flex; gap:25px; font-size:20px; flex-wrap:wrap; margin-bottom: 10px;">{html1}</div>', unsafe_allow_html=True)
 
 st.subheader("한국")
-group1 = T_list[0:8]
+group1 = T_list[7:15]
 html1 = ' '.join(f'<a href="{d["url"]}" target="_blank" style="text-decoration:none;"><b>🔗 {d["item"]}</b></a>' for d in group1)
 st.markdown(f'<div style="display:flex; gap:25px; font-size:20px; flex-wrap:wrap; margin-bottom: 10px;">{html1}</div>', unsafe_allow_html=True)
 
 st.subheader("미국")
-group2 = T_list[8:12]
+group2 = T_list[15:19]
 html2 = ' '.join(f'<a href="{d["url"]}" target="_blank" style="text-decoration:none;"><b>🔗 {d["item"]}</b></a>' for d in group2)
 st.markdown(f'<div style="display:flex; gap:25px; font-size:20px; flex-wrap:wrap; margin-bottom: 10px;">{html2}</div>', unsafe_allow_html=True)
 
 st.subheader("자산")
-group3 = T_list[12:]
+group3 = T_list[19:]
 html3 = ' '.join(f'<a href="{d["url"]}" target="_blank" style="text-decoration:none;"><b>🔗 {d["item"]}</b></a>' for d in group3)
 st.markdown(f'<div style="display:flex; gap:25px; font-size:20px; flex-wrap:wrap;">{html3}</div>', unsafe_allow_html=True)
 
