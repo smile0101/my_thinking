@@ -105,6 +105,24 @@ def get_current_price(code):
     except Exception as e:
         pass
     return None
+def get_current_rate(code):
+    try:
+        df = fdr.DataReader(code)
+        if 'Change' in df.columns:
+            change_val = round(df['Change'].iloc[-1] * 100, 1)
+        else:
+            change_val = round(df['Close'].pct_change().iloc[-1] * 100, 1)
+
+        if change_val > 0:
+            return f'<span style="color: red; font-weight: bold;">▲ +{change_val}%</span>'
+        elif change_val < 0:
+            return f'<span style="color: blue; font-weight: bold;">▼ {change_val}%</span>'
+        else:
+            return f'<span style="color: gray; font-weight: bold;">- {change_val}%</span>'
+            
+    except Exception as e:
+        pass
+    return None
 
 # 데이터 로드 및 분석 함수 정의
 def load_data(code, T=60, N=1):
@@ -364,6 +382,7 @@ for section_name, items in portfolio_data.items():
                 buy_price = item['buy_price']
                 
                 current_price = get_current_price(code)
+                RR = get_current_rate(code)
                 
                 # 링크 생성
                 naver_stock_url = f"https://m.stock.naver.com/domestic/stock/{code}/total?domesticStockExchange=KRX"
@@ -377,7 +396,7 @@ for section_name, items in portfolio_data.items():
                     st.markdown(
                         f"""
                         <div style="padding: 12px; border: 1px solid #e0e0e0; border-radius: 8px; margin-bottom: 5px; background-color: #f9f9f9;">
-                            <a href="{naver_stock_url}" target="_blank" style="font-weight: bold; font-size: 1.05em; text-decoration: none; color: #1f77b4;">{name}</a><br>
+                            <a href="{naver_stock_url}" target="_blank" style="font-weight: bold; font-size: 1.05em; text-decoration: none; color: #1f77b4;">{name}</a> ({RR}) <br>
                             <span style="font-size: 0.85em; color: gray;">매수가: {buy_price:,.0f}원 | 현재가: {current_price:,.0f}원</span><br>
                             수익률: <span style="color:{color}; font-weight:bold;">{return_rate:+.1f}%</span>
                         </div>
@@ -408,26 +427,11 @@ for section_name, items in portfolio_data.items():
 
                 st.write("") # 간격 조정
 
-                # btn_col1, btn_col2, btn_col3 = st.columns([2, 1, 1])
-                # with btn_col1:
-                #     current_active = st.session_state.selected_analysis_by_section.get(section_name)
-                #     is_active = (current_active == {"item": name, "code": code})
-                #     btn_label = "📊 분석닫기" if is_active else "📊 분석"
-                #     if st.button(btn_label, key=f"btn_{code}_{name}_{section_name}"):
-                #         toggle_analysis(section_name, name, code)
-                #         st.rerun()
-                # with btn_col2:
-                #     st.markdown(f'<div style="text-align: center; padding-top: 5px;"><a href="{naver_news_url}" target="_blank" title="네이버 뉴스 검색" style="text-decoration: none; font-size: 1.1em;"> Naver </a></div>', unsafe_allow_html=True)
-                # with btn_col3:
-                #     st.markdown(f'<div style="text-align: center; padding-top: 5px;"><a href="{google_news_url}" target="_blank" title="구글 뉴스 검색" style="text-decoration: none; font-size: 1.1em;"> Google </a></div>', unsafe_allow_html=True)
-                
-                # st.write("") # 간격 조정
-
-    # 각 섹션(예: [삼성01], [키움W]) 바로 아래에 해당 섹션의 선택된 종목 분석 차트 렌더링
     active_in_section = st.session_state.selected_analysis_by_section.get(section_name)
     if active_in_section:
         st.markdown("---")
-        st.subheader(f"📊 {active_in_section['item']}")
+        st.markdown( f""" <div style="display: flex; align-items: center; gap: 25px; font-size: 20px; margin-bottom: 15px;">
+        <a href="https://kr.tradingview.com/chart/Y3Tq45pg/?symbol=KRX%3A{active_in_section["code"]}" target="_blank"><b>📌 {active_in_section['item']} </b></a>  </div>  """,  unsafe_allow_html=True)
         
         with st.spinner(f"{active_in_section['item']} 데이터를 불러오는 중입니다..."):
             df = load_data(active_in_section["code"])
