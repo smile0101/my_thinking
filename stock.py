@@ -673,7 +673,7 @@ def showW( item, d ):
     ax1 = fig.add_subplot(gs[0])
     ax2 = fig.add_subplot(gs[1], sharex=ax1) # x축 공유
     ax3 = fig.add_subplot(gs[2], sharex=ax1) # x축 공유
-    ax7 = fig.add_subplot(gs[4], sharex=ax1) # x축 공유
+    ax7 = fig.add_subplot(gs[3], sharex=ax1) # x축 공유
 
     ax1.set_title(f"{code}",fontsize=8)
     ##################################################################
