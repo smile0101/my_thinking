@@ -404,6 +404,15 @@ with row_link[3]:
         update_field(code, 'Memo', memo_val)
         st.success("저장되었습니다.")
         st.rerun()
+################################### 투자자/ 매몰도  ########################################################
+
+cols1 = st.columns(3)
+cols1[0].image(f'https://webchart.thinkpool.com/2021ReNew/CumulationSelling/A{code}.png',
+               use_container_width=True, caption="투자자")
+cols1[1].image(f'https://ssl.pstatic.net/imgfinance/chart/item/area/week/{code}.png',
+               use_container_width=True, caption="5일 주가")
+cols1[2].image(f'https://webchart.thinkpool.com/2021ReNew/stock1day_volume/A{code}.png',
+               use_container_width=True, caption="매몰도")
 
 ####################################### 그래프 1 ##################################################################
 
@@ -610,6 +619,16 @@ def showV(item, d, T=60):
     plt.setp(ax3.get_xticklabels(), visible=False)    
 
     return fig
+##############################################################################################################################
+
+if dfv is None or dfv.empty:
+    st.error("데이터를 불러오지 못했습니다. (fdr.DataReader 실패)")
+else:
+    fig = showV(item, dfv)
+    # ── 그래프 렌더링 ──────────────────────────────────
+    st.pyplot(fig)
+    plt.close(fig)  # 메모리 누수 방지 (matplotlib figure는 명시적으로 닫아줘야 함)
+
 
 ####################################### 그래프 2 ##################################################################
 def showW( item, d ):
@@ -764,29 +783,16 @@ def showW( item, d ):
     fig.subplots_adjust(hspace=0.05, left=0.05, right=0.95, top=0.95)
 
     return fig
-
-
 ##############################################################################################################################
 
-if dfv is None or dfv.empty:
+if dft is None or dfv.empty:
     st.error("데이터를 불러오지 못했습니다. (fdr.DataReader 실패)")
 else:
-    fig = showV(item, dfv)
     fig = showW(item, dft)
 
     # ── 그래프 렌더링 ──────────────────────────────────
     st.pyplot(fig)
     plt.close(fig)  # 메모리 누수 방지 (matplotlib figure는 명시적으로 닫아줘야 함)
-
-################################### 투자자/ 매몰도  ########################################################
-
-cols1 = st.columns(3)
-cols1[0].image(f'https://webchart.thinkpool.com/2021ReNew/CumulationSelling/A{code}.png',
-               use_container_width=True, caption="투자자")
-cols1[1].image(f'https://ssl.pstatic.net/imgfinance/chart/item/area/week/{code}.png',
-               use_container_width=True, caption="5일 주가")
-cols1[2].image(f'https://webchart.thinkpool.com/2021ReNew/stock1day_volume/A{code}.png',
-               use_container_width=True, caption="매몰도")
 
 #############################        Trend       ##########################################
 
