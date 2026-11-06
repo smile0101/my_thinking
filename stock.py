@@ -772,7 +772,7 @@ if dfv is None or dfv.empty:
     st.error("데이터를 불러오지 못했습니다. (fdr.DataReader 실패)")
 else:
     fig = showV(item, dfv)
-    fig = showw(item, dft)
+    fig = showW(item, dft)
 
     # ── 그래프 렌더링 ──────────────────────────────────
     st.pyplot(fig)
