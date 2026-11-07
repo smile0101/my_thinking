@@ -213,5 +213,7 @@ for sector_name, stocks in stock_dict.items():
             f"https://webchart.thinkpool.com/2021ReNew/stock1day_volume/A{code}.png"
         )
         st.image(chart_url, use_container_width=True)
+        tv_url = f"https://kr.tradingview.com/chart/Y3Tq45pg/?symbol=KRX%3A{code}"
+        st.caption(f"[TradingView 차트 열기]({tv_url})")
 
     st.markdown("---")  # 줄 바꿈 구분선
