@@ -264,14 +264,19 @@ T_list = [
     {"item": "코스피맵", "url": "https://markets.hankyung.com/marketmap/kospi"},
     {"item": "코스닥맵", "url": "https://markets.hankyung.com/marketmap/kosdaq"},
 
-    {"item": "S&P맵", "url": "https://finviz.com/map.ashx"},
+    {"item": "S&P맵", "url": "https://finance.yahoo.com/quote/%5EGSPC/"},
     {"item": "S&P", "url": "https://m.stock.naver.com/worldstock/index/.INX/total", "code": "US500", "GG" : "SP500"},
     {"item": "다우지수", "url": "https://m.stock.naver.com/worldstock/index/.DJI/total", "code": "DJI", "GG" : "DJI"},
     {"item": "나스닥지수", "url": "https://m.stock.naver.com/worldstock/index/.IXIC/total", "code": "IXIC", "GG" : "IXIC"},
+    {"item": "필라델피아", "url": "https://m.stock.naver.com/worldstock/index/.SOX/total"},
+    {"item": "미국국채", "url": "https://chartlog.net/stats/interest-rates/%EB%AF%B8%EA%B5%AD-%EA%B5%AD%EC%B1%84-%EA%B8%88%EB%A6%AC/"},
+    {"item": "CPI(14일)", "url": "https://chartlog.net/stats/inflation/%EB%AF%B8%EA%B5%AD-cpi/"},
 
     {"item": "WTI", "url": "https://m.stock.naver.com/marketindex/energy/CLcv1?chartPeriod=day", "code": "CL=F", "GG" : "WTI"},
     {"item": "달러", "url": "https://stock.naver.com/marketindex/exchange/FX_USDKRW/price", "code": "USD/KRW", "GG" : "USDKRW"},
     {"item": "엔화", "url": "https://m.stock.naver.com/marketindex/exchange/FX_JPYKRW", "code": "JPY/KRW", "GG" : "JPYKRW"},
+    {"item": "Gold", "url": "https://m.stock.naver.com/marketindex/metals/GCcv1?chartPeriod=day","code": "GC=F",  "GG" : "Gold"},
+    {"item": "은", "url": "https://m.stock.naver.com/marketindex/metals/SIcv1","code": "SI=F",  "GG" : "SILVER"},    
     {"item": "실시간", "url": "https://stock.naver.com/market/stock/kr/stocklist/priceTop"},
 ]
 st.subheader("News")
@@ -285,12 +290,12 @@ html1 = ' '.join(f'<a href="{d["url"]}" target="_blank" style="text-decoration:n
 st.markdown(f'<div style="display:flex; gap:25px; font-size:20px; flex-wrap:wrap; margin-bottom: 10px;">{html1}</div>', unsafe_allow_html=True)
 
 st.subheader("미국")
-group2 = T_list[15:19]
+group2 = T_list[15:22]
 html2 = ' '.join(f'<a href="{d["url"]}" target="_blank" style="text-decoration:none;"><b>🔗 {d["item"]}</b></a>' for d in group2)
 st.markdown(f'<div style="display:flex; gap:25px; font-size:20px; flex-wrap:wrap; margin-bottom: 10px;">{html2}</div>', unsafe_allow_html=True)
 
 st.subheader("자산")
-group3 = T_list[19:]
+group3 = T_list[22:]
 html3 = ' '.join(f'<a href="{d["url"]}" target="_blank" style="text-decoration:none;"><b>🔗 {d["item"]}</b></a>' for d in group3)
 st.markdown(f'<div style="display:flex; gap:25px; font-size:20px; flex-wrap:wrap;">{html3}</div>', unsafe_allow_html=True)
 
@@ -333,13 +338,17 @@ if st.session_state.selected_analysis:
 keys = {
 
     'BTC(1일)' : 'https://imagechart.upbit.com/d/mini/BTC.png',
+    '일본': 'https://ssl.pstatic.net/imgfinance/chart/world/month3/NII@NI225.png',
+    '인도증시'  : 'https://ssl.pstatic.net/imgfinance/chart/world/month3/INI@BSE30.png',
+    '상해증시' : 'https://ssl.pstatic.net/imgfinance/chart/world/month3/SHS@000001.png',
+
+    '국내금' :'https://ssl.pstatic.net/imgfinance/chart/marketindex/area/month3/CMDT_GD.png',
     '구리' : 'https://ssl.pstatic.net/imgfinance/chart/marketindex/area/month/CMDT_CDY.png',  
     '천연가스' : 'https://t1.daumcdn.net/media/finance/chart/kr/commodity-mini/m/NG.png',
     '미국채30년' : 'https://t1.daumcdn.net/media/finance/chart/kr/bond-mini/m/US30YT.png',
     '국채 3년' : 'https://t1.daumcdn.net/media/finance/chart/kr/bond-mini/m/KRTSY3Y.png',
     '콜금리' : 'https://t1.daumcdn.net/media/finance/chart/kr/bond-mini/m3/KRCALL.png',
-    '상해증시' : 'https://ssl.pstatic.net/imgfinance/chart/world/month3/SHS@000001.png',
-    '인도증시'  : 'https://ssl.pstatic.net/imgfinance/chart/world/month3/INI@BSE30.png'}
+}
 
 items = list(keys.items()) # (이름, URL) 튜플 리스트로 변환
 cols_per_row = 4
