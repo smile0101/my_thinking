@@ -150,7 +150,7 @@ for sector_name, stocks in stock_dict.items():
 
         # 요청하신 형식: 종목명 + 컬러 등락률 + 검정색 거래대금(맨 끝에만 '억' 표시)
         st.markdown(
-            f" **✔️ {name} ** &nbsp; {change_display} &nbsp;"
+            f" ✔️ {name} &nbsp; {change_display} &nbsp;"
             f" {mm_display}",
             unsafe_allow_html=True,
         )
