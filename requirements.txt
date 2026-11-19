@@ -14,3 +14,5 @@ dnspython
 certifi
 koreanize-matplotlib
 setuptools
+yfinance
+mplfinance
