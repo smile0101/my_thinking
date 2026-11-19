@@ -1,110 +1,60 @@
+import io
 import FinanceDataReader as fdr
 import streamlit as st
+import yfinance as yf
+import mplfinance as mpf
 
 # 페이지 설정 (반드시 최상단에 위치)
 st.set_page_config(page_title="Report", layout="wide")
+st.markdown(f"### 📊 관심 종목")
 
-# 1. 원본 데이터 정의
+# 이미지 URL 딕셔너리 (문법 오류 수정 완료)
+chart_urls = {
+    '코스피': 'https://ssl.pstatic.net/imgfinance/chart/sise/siseMainKOSPI.png',
+    '코스닥':'https://ssl.pstatic.net/imgfinance/chart/sise/siseMainKOSDAQ.png',
+    '달러': 'https://ssl.pstatic.net/imgfinance/chart/marketindex/area/month3/FX_USDKRW.png',
+    '투자자(코스피)' : 'https://ssl.pstatic.net/imgfinance/chart/sise/trendUitradeDayKOSPI.png?',
+    '투자자(코스닥)' : 'https://ssl.pstatic.net/imgfinance/chart/sise/trendUitradeDayKOSDAQ.png',
+    'WTI' : 'https://ssl.pstatic.net/imgfinance/chart/marketindex/area/month3/OIL_CL.png',
+    '일본증시': 'https://ssl.pstatic.net/imgfinance/chart/world/month3/NII@NI225.png',
+    '인도증시'  : 'https://ssl.pstatic.net/imgfinance/chart/world/month3/INI@BSE30.png',
+    '항생증시' : 'https://ssl.pstatic.net/imgfinance/chart/world/month3/HSI@HSI.png',
+    'BTC' : 'https://imagechart.upbit.com/d/mini/BTC.png',
+    '엔화' : 'https://ssl.pstatic.net/imgfinance/chart/marketindex/area/month3/FX_JPYKRW.png',
+    '국내금' :'https://ssl.pstatic.net/imgfinance/chart/marketindex/area/month3/CMDT_GD.png',
+}
+
+# 딕셔너리 아이템들을 리스트로 변환 (이름, URL 쌍)
+items = list(chart_urls.items())
+
+# 3개씩 묶어서 반복문 실행
+for i in range(0, len(items), 3):
+    # 한 행에 들어갈 3개의 컬럼 생성
+    cols = st.columns(3)
+    
+    # 3개씩 자르기 (마지막 행에 개수가 모자라도 에러가 나지 않도록 슬라이싱 처리됨)
+    chunk = items[i:i+3]
+    
+    for j, (title, url) in enumerate(chunk):
+        with cols[j]:
+            st.markdown(f"##### {title}")
+            st.image(url, use_container_width=True)
+
+#################################################################################
+
 t = """
-[반도체]
-삼성전자	005930
-SK하이닉스	000660
-LG전자	066570
-한미반도체	042700
-이수페타시스	007660
-삼성전기	009150
-대덕전자	353200
-
-[로봇]
-두산로보틱스	454910
-레인보우로보틱스	277810
-에스피지	058610
-
-[조선]
-HD현대중공업	329180
-한화오션	042660
-보성파워텍	006910
-
-[원전]
-두산에너빌리티	034020
-한전기술	052690
-
-[전력]
-HD현대일렉트릭	267260
-효성중공업	298040
-LSELECTRIC	010120
-
-[전선]
-산일전기	062040
-대한전선	001440
-일진전기	103590
-가온전선	000500
-
-[방산]
-한화에어로스페이스	012450
-LIG넥스원	079550
-퍼스텍	010820
-
-[바이오]
-삼성바이오로직스	207940
-셀트리온	068270
-알테오젠	196170
-에이비엘바이오	298380
-리가켐바이오	141080
-HLB	028300
-
-[금융]
-KB금융	105560
-신한지주	055550
-JB금융지주	175330
-
-[뷰티]
-에이피알	278470
-달바글로벌	483650
-파마리서치	214450
-휴젤	145020
-실리콘투	257720
-브이티	018290
-
-[통신]
-SK스퀘어	402340
+[관심]
+KODEX미국달러선물레버리지	261250
 SK텔레콤	017670
-KT	030200
-[엔터]
-하이브	352820
-에스엠	041510
-와이지엔터테인먼트	122870
-[푸드]
-삼양식품	003230
-빙그레	005180
-[전지]
-LG에너지솔루션	373220
-POSCO홀딩스	005490
-삼성SDI	096770
-포스코퓨처엠	003670
-에코프로비엠	247540
-에코프로	086520
+SK스퀘어	402340
+삼성인버스2XWTIETN	530134
+KODEX2차전지산업레버리지	462330
+KODEX200타겟위클리커버드콜	498400
+SOL팔란티어커버드콜OTM채권혼합	0040Y0
+RISE코리아밸류업위클리고정커버드콜	0094M0
 
-[기초자산]
-KODEXWTI(H)	261220
-KODEXWTI인버스(H)	271050	
-KODEX달러레버리지	261250
-KODEX달러인버스2X	261260	
-TIGER일본엔선물	292560
-ACEKRX금현물	411060
-KODEX골드인버스(H)	280940
-KODEX은선물(H)	144600
-TIGER리츠부동산	329200
-KODEX건설	117700
 
-[외국]
-ACE미빅테크TOP7레버리지(합성)	465610
-ACE미빅테크TOP7인버스(합성)	465620
-KODEX미휴머노이드로봇	0038A0
-TIGER미우주테크	0183J0
-SOL팔란티어커버드콜	0040Y0
-TIGER차이나전기차레버리지(합성)	456680
-TIGER차이나항셍테크레버리지(H)	438320
+
 """
 
 def parse_stock_data(text):
@@ -126,9 +76,6 @@ def parse_stock_data(text):
 
 
 stock_dict = parse_stock_data(t)
-
-st.title("📊 관심 종목")
-
 
 # 3. 등락률에 색상(빨강/파랑)을 입혀주는 HTML 생성 함수
 def get_colored_change_str(changes):
@@ -158,7 +105,7 @@ def get_colored_mm_str(mm_list):
 
 # 5. 섹터별 순회 및 출력
 for sector_name, stocks in stock_dict.items():
-  st.markdown(f"## [{sector_name}]")
+  st.markdown(f"### [{sector_name}]")
 
   # 한 줄에 3개씩 배치하기 위해 3개씩 묶어서 처리
   for i in range(0, len(stocks), 3):
@@ -203,7 +150,7 @@ for sector_name, stocks in stock_dict.items():
 
         # 요청하신 형식: 종목명 + 컬러 등락률 + 검정색 거래대금(맨 끝에만 '억' 표시)
         st.markdown(
-            f"**✔️ {name} ({code})** &nbsp; {change_display} &nbsp;"
+            f" **✔️ {name} ** &nbsp; {change_display} &nbsp;"
             f" {mm_display}",
             unsafe_allow_html=True,
         )
@@ -217,3 +164,26 @@ for sector_name, stocks in stock_dict.items():
         st.caption(f"[Chart]({tv_url})")
 
     st.markdown("---")  # 줄 바꿈 구분선
+
+    tickers = ["PLTR", "NVDA",  "TSLA", "AAPL", "MSFT", "GOOG" ]
+
+
+@st.cache_data(ttl=600)
+def make_chart(ticker):
+    df = yf.download(ticker, period="1mo", auto_adjust=True, progress=False)
+    df.columns = df.columns.get_level_values(0)  # 멀티인덱스 대응
+    buf = io.BytesIO()
+    mpf.plot(df, type="candle", mav=(5, 10), volume=True, title=f"{ticker}",
+             savefig=dict(fname=buf, format="png", dpi=100,
+                          bbox_inches="tight", pad_inches=0.05))  # 바깥 여백 제거
+    buf.seek(0)
+    return buf.getvalue()
+
+
+items = [(t, make_chart(t)) for t in tickers]
+
+for i in range(0, len(items), 3):
+    cols = st.columns(3)
+    for col, (title, png) in zip(cols, items[i:i + 3]):
+        with col:
+            st.image(png, use_container_width=True) 
